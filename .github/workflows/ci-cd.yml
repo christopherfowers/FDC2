@@ -26,6 +26,13 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         registry-url: 'https://registry.npmjs.org'
 
+    - name: Configure FontAwesome Pro registry
+      run: |
+        npm config set "@fortawesome:registry" https://npm.fontawesome.com/
+        npm config set "//npm.fontawesome.com/:_authToken" ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+      env:
+        FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+
     - name: Install system dependencies (Ubuntu)
       run: |
         sudo apt-get update
@@ -129,6 +136,8 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         provenance: false
+        build-args: |
+          FONTAWESOME_NPM_AUTH_TOKEN=${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
 
     - name: Update Docker Hub description
       if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
