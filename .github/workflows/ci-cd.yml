@@ -10,7 +10,7 @@ on:
 env:
   DOCKER_IMAGE: fdc2
   DOCKERHUB_USERNAME: cwfowers
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
 
 jobs:
   test:
@@ -48,16 +48,28 @@ jobs:
     - name: Install dependencies
       run: |
         echo "Installing dependencies..."
-        npm ci --no-optional --verbose
+        # First try npm ci, fall back to npm install if needed
+        npm ci --verbose --no-optional || npm install --verbose
       env:
         SQLITE3_BINARY_HOST_MIRROR: https://registry.npmmirror.com/-/binary/sqlite3/
         NPM_CONFIG_LOGLEVEL: verbose
+        # Force platform-specific binaries to install correctly
+        NPM_CONFIG_TARGET_PLATFORM: linux
+        NPM_CONFIG_TARGET_ARCH: x64
 
     - name: Install SQLite3 fallback (if needed)
       if: failure()
       run: |
         echo "Standard install failed, trying SQLite3 rebuild..."
         npm install sqlite3 --build-from-source
+        
+    - name: Rebuild native dependencies (if needed)
+      if: failure()
+      run: |
+        echo "Rebuilding all native dependencies..."
+        npm rebuild
+        # Specifically handle rollup binaries
+        npm install @rollup/rollup-linux-x64-gnu --save-dev || echo "Rollup binary install failed, continuing..."
 
     - name: Run linting
       run: npm run lint
