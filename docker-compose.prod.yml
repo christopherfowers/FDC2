@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  fdc2-app:
+    build: .
+    ports:
+      - "80:3001"  # Map to port 80 for web access
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "const http=require('http');const options={hostname:'localhost',port:3001,path:'/health',method:'GET'};const req=http.request(options,(res)=>{if(res.statusCode===200){process.exit(0)}else{process.exit(1)}});req.on('error',()=>{process.exit(1)});req.end();"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      # Persist database data
+      - fdc2-data:/app/data
+    networks:
+      - fdc2-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+networks:
+  fdc2-network:
+    driver: bridge
+
+volumes:
+  fdc2-data:
+    driver: local
