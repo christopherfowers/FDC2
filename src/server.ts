@@ -22,15 +22,7 @@ app.use(express.json());
 // Initialize database
 const mortarDb = new MortarDatabase();
 
-// Serve static files in production
-if (NODE_ENV === 'production') {
-  // Serve static files from the React app build directory
-  const buildPath = path.join(__dirname, '../dist');
-  console.log('Build Path:', buildPath);
-  app.use(express.static(buildPath));
-  
-  console.log(`🗂️  Serving static files from: ${buildPath}`);
-}
+// Static files will be served after API routes in production
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
@@ -171,15 +163,19 @@ app.use((error: Error, _req: express.Request, res: express.Response, _next: expr
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Catch-all handler: send back React's index.html file in production
+// Serve static files in production (after all API routes)
 if (NODE_ENV === 'production') {
-  app.get('/*', (_req, res, next) => {
-    if (!_req.path.startsWith('/api')) {
-      const indexPath = path.join(__dirname, '../dist/index.html');
-      res.sendFile(indexPath);
-    } else {
-      next(); // Let the next route handle it
-    }
+  // Serve static files from the React app build directory
+  const buildPath = path.join(__dirname, '../dist');
+  console.log('Build Path:', buildPath);
+  app.use(express.static(buildPath));
+  
+  console.log(`🗂️  Serving static files from: ${buildPath}`);
+  
+  // Handle React Router - send index.html for any non-API routes
+  app.use((_req, res) => {
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    res.sendFile(indexPath);
   });
 } else {
   // 404 handler for development (API only)
