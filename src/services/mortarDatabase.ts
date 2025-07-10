@@ -90,9 +90,53 @@ export class MortarDatabase {
   private initializeWithPath(dbLocation: string): void {
     console.log(`📊 Using database at: ${dbLocation}`);
     
+    // Add extensive debugging before attempting to create database
+    const dbDir = path.dirname(dbLocation);
+    console.log(`🔍 Pre-database creation debugging:`);
+    console.log(`  - Database file: ${dbLocation}`);
+    console.log(`  - Database directory: ${dbDir}`);
+    console.log(`  - Directory exists: ${fs.existsSync(dbDir)}`);
+    console.log(`  - Current working directory: ${process.cwd()}`);
+    console.log(`  - Process user: ${process.getuid ? process.getuid() : 'N/A'}`);
+    
+    // Check directory permissions more thoroughly
+    try {
+      const stats = fs.statSync(dbDir);
+      console.log(`  - Directory permissions: ${stats.mode.toString(8)}`);
+      console.log(`  - Directory owner: ${stats.uid}`);
+    } catch (statError) {
+      console.error(`  - Cannot stat directory: ${statError}`);
+    }
+    
+    // Try to create a test file in the directory
+    try {
+      const testFile = path.join(dbDir, 'test-write.tmp');
+      fs.writeFileSync(testFile, 'test');
+      fs.unlinkSync(testFile);
+      console.log(`  - ✅ Directory is writable (test file created and deleted)`);
+    } catch (writeError) {
+      console.error(`  - ❌ Directory write test failed: ${writeError}`);
+      
+      // If we can't write to the intended directory, fall back to /tmp
+      if (process.env.NODE_ENV === 'production' && dbLocation !== '/tmp/mortar.db') {
+        console.log(`🔄 Falling back to /tmp/mortar.db due to write permission issue`);
+        this.initializeWithPath('/tmp/mortar.db');
+        return;
+      }
+    }
+    
     this.db = new sqlite3.Database(dbLocation, (err) => {
       if (err) {
         console.error('❌ Failed to open database:', err);
+        console.error('Database location that failed:', dbLocation);
+        
+        // Last resort fallback to /tmp
+        if (process.env.NODE_ENV === 'production' && dbLocation !== '/tmp/mortar.db') {
+          console.log(`🆘 Final fallback to /tmp/mortar.db`);
+          this.initializeWithPath('/tmp/mortar.db');
+          return;
+        }
+        
         throw err;
       }
       console.log('✅ Database connection established');
