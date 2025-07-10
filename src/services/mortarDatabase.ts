@@ -16,7 +16,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export class MortarDatabase {
-  private db: sqlite3.Database;
+  private db: sqlite3.Database | null = null;
 
   constructor(dbPath?: string) {
     // Allow database path to be configured via environment variable
