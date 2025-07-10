@@ -1,5 +1,6 @@
 import sqlite3 from 'sqlite3';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import type { 
   MortarSystem, 
@@ -18,8 +19,31 @@ export class MortarDatabase {
   private db: sqlite3.Database;
 
   constructor(dbPath?: string) {
-    const dbLocation = dbPath || path.join(__dirname, '../../data/mortar.db');
-    this.db = new sqlite3.Database(dbLocation);
+    // Create a more robust database path
+    const defaultPath = process.env.NODE_ENV === 'production' 
+      ? '/app/data/mortar.db'  // Use /app/data in production (Docker)
+      : path.join(__dirname, '../../data/mortar.db');
+    
+    const dbLocation = dbPath || defaultPath;
+    
+    // Ensure the directory exists for development
+    if (process.env.NODE_ENV !== 'production') {
+      const dbDir = path.dirname(dbLocation);
+      if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+      }
+    }
+    
+    console.log(`📊 Using database at: ${dbLocation}`);
+    
+    this.db = new sqlite3.Database(dbLocation, (err) => {
+      if (err) {
+        console.error('❌ Failed to open database:', err);
+        throw err;
+      }
+      console.log('✅ Database connection established');
+    });
+    
     this.initializeDatabase();
   }
 

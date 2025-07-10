@@ -36,6 +36,10 @@ RUN ls -la && ls -la dist/ && ls -la src/
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
+# Create data directory for SQLite database
+RUN mkdir -p /app/data && \
+    chown -R nodejs:nodejs /app
+
 # Change ownership of app directory
 RUN chown -R nodejs:nodejs /app
 USER nodejs
