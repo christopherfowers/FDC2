@@ -173,7 +173,7 @@ app.use((error: Error, _req: express.Request, res: express.Response, _next: expr
 
 // Catch-all handler: send back React's index.html file in production
 if (NODE_ENV === 'production') {
-  app.get('*', (_req, res, next) => {
+  app.get('/*', (_req, res, next) => {
     if (!_req.path.startsWith('/api')) {
       const indexPath = path.join(__dirname, '../dist/index.html');
       res.sendFile(indexPath);
