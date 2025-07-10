@@ -16,7 +16,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export class MortarDatabase {
-  private db: sqlite3.Database | null = null;
+  private db: sqlite3.Database;
 
   constructor(dbPath?: string) {
     // Allow database path to be configured via environment variable
@@ -33,6 +33,11 @@ export class MortarDatabase {
     console.log(`📊 NODE_ENV: ${process.env.NODE_ENV}`);
     console.log(`📁 Target database path: ${dbLocation}`);
     
+    // Initialize with the primary path first
+    this.db = this.createDatabase(dbLocation);
+  }
+
+  private createDatabase(dbLocation: string): sqlite3.Database {
     // Ensure the directory exists (both dev and production)
     const dbDir = path.dirname(dbLocation);
     
@@ -66,8 +71,7 @@ export class MortarDatabase {
           // Fallback to /tmp in production if /app/data fails
           const fallbackPath = '/tmp/mortar.db';
           console.log(`🔄 Using fallback database path: ${fallbackPath}`);
-          this.initializeWithPath(fallbackPath);
-          return;
+          return this.createDatabase(fallbackPath);
         }
         throw permError;
       }
@@ -78,16 +82,15 @@ export class MortarDatabase {
         // Use /tmp as absolute fallback
         const fallbackPath = '/tmp/mortar.db';
         console.log(`🔄 Using fallback database path: ${fallbackPath}`);
-        this.initializeWithPath(fallbackPath);
-        return;
+        return this.createDatabase(fallbackPath);
       }
       throw dirError;
     }
     
-    this.initializeWithPath(dbLocation);
+    return this.initializeWithPath(dbLocation);
   }
 
-  private initializeWithPath(dbLocation: string): void {
+  private initializeWithPath(dbLocation: string): sqlite3.Database {
     console.log(`📊 Using database at: ${dbLocation}`);
     
     // Add extensive debugging before attempting to create database
@@ -120,12 +123,11 @@ export class MortarDatabase {
       // If we can't write to the intended directory, fall back to /tmp
       if (process.env.NODE_ENV === 'production' && dbLocation !== '/tmp/mortar.db') {
         console.log(`🔄 Falling back to /tmp/mortar.db due to write permission issue`);
-        this.initializeWithPath('/tmp/mortar.db');
-        return;
+        return this.initializeWithPath('/tmp/mortar.db');
       }
     }
     
-    this.db = new sqlite3.Database(dbLocation, (err) => {
+    const db = new sqlite3.Database(dbLocation, (err) => {
       if (err) {
         console.error('❌ Failed to open database:', err);
         console.error('Database location that failed:', dbLocation);
@@ -133,8 +135,8 @@ export class MortarDatabase {
         // Last resort fallback to /tmp
         if (process.env.NODE_ENV === 'production' && dbLocation !== '/tmp/mortar.db') {
           console.log(`🆘 Final fallback to /tmp/mortar.db`);
-          this.initializeWithPath('/tmp/mortar.db');
-          return;
+          // This is recursive but will stop at /tmp
+          throw new Error('Database initialization failed, manual fallback required');
         }
         
         throw err;
@@ -142,13 +144,16 @@ export class MortarDatabase {
       console.log('✅ Database connection established');
     });
     
-    this.initializeDatabase();
+    // Initialize the database schema immediately
+    this.initializeDatabaseSchema(db);
+    
+    return db;
   }
 
-  private initializeDatabase(): void {
-    this.db.serialize(() => {
+  private initializeDatabaseSchema(db: sqlite3.Database): void {
+    db.serialize(() => {
       // Create mortar_system table
-      this.db.run(`
+      db.run(`
         CREATE TABLE IF NOT EXISTS mortar_system (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL UNIQUE,
@@ -158,7 +163,7 @@ export class MortarDatabase {
       `);
 
       // Create mortar_round table
-      this.db.run(`
+      db.run(`
         CREATE TABLE IF NOT EXISTS mortar_round (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
@@ -169,7 +174,7 @@ export class MortarDatabase {
       `);
 
       // Create mortar_round_data table
-      this.db.run(`
+      db.run(`
         CREATE TABLE IF NOT EXISTS mortar_round_data (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           mortarSystemId INTEGER NOT NULL,
@@ -188,9 +193,9 @@ export class MortarDatabase {
       `);
 
       // Create indexes for performance
-      this.db.run(`CREATE INDEX IF NOT EXISTS idx_round_data_system ON mortar_round_data(mortarSystemId)`);
-      this.db.run(`CREATE INDEX IF NOT EXISTS idx_round_data_round ON mortar_round_data(mortarRoundId)`);
-      this.db.run(`CREATE INDEX IF NOT EXISTS idx_round_data_range ON mortar_round_data(rangeM)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_round_data_system ON mortar_round_data(mortarSystemId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_round_data_round ON mortar_round_data(mortarRoundId)`);
+      db.run(`CREATE INDEX IF NOT EXISTS idx_round_data_range ON mortar_round_data(rangeM)`);
     });
   }
 
