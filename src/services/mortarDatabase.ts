@@ -19,21 +19,75 @@ export class MortarDatabase {
   private db: sqlite3.Database;
 
   constructor(dbPath?: string) {
+    // Allow database path to be configured via environment variable
+    const envDbPath = process.env.DATABASE_PATH;
+    
     // Create a more robust database path
     const defaultPath = process.env.NODE_ENV === 'production' 
       ? '/app/data/mortar.db'  // Use /app/data in production (Docker)
       : path.join(__dirname, '../../data/mortar.db');
     
-    const dbLocation = dbPath || defaultPath;
+    const dbLocation = dbPath || envDbPath || defaultPath;
     
-    // Ensure the directory exists for development
-    if (process.env.NODE_ENV !== 'production') {
-      const dbDir = path.dirname(dbLocation);
+    console.log(`🎯 FDC2 Database Initialization`);
+    console.log(`📊 NODE_ENV: ${process.env.NODE_ENV}`);
+    console.log(`📁 Target database path: ${dbLocation}`);
+    
+    // Ensure the directory exists (both dev and production)
+    const dbDir = path.dirname(dbLocation);
+    
+    try {
+      // Check if directory exists, create if not
       if (!fs.existsSync(dbDir)) {
+        console.log(`📁 Creating database directory: ${dbDir}`);
         fs.mkdirSync(dbDir, { recursive: true });
+        console.log(`✅ Directory created successfully`);
+      } else {
+        console.log(`📁 Database directory already exists: ${dbDir}`);
       }
+      
+      // Check directory permissions
+      try {
+        fs.accessSync(dbDir, fs.constants.W_OK);
+        console.log(`✅ Database directory is writable: ${dbDir}`);
+      } catch (permError) {
+        console.error(`❌ Database directory not writable: ${dbDir}`, permError);
+        
+        if (process.env.NODE_ENV === 'production') {
+          // List directory contents for debugging
+          console.log(`🔍 Directory listing for ${dbDir}:`);
+          try {
+            const files = fs.readdirSync(dbDir);
+            console.log(files);
+          } catch (listError) {
+            console.error(`Cannot list directory: ${listError}`);
+          }
+          
+          // Fallback to /tmp in production if /app/data fails
+          const fallbackPath = '/tmp/mortar.db';
+          console.log(`🔄 Using fallback database path: ${fallbackPath}`);
+          this.initializeWithPath(fallbackPath);
+          return;
+        }
+        throw permError;
+      }
+      
+    } catch (dirError) {
+      console.error(`❌ Failed to create database directory: ${dbDir}`, dirError);
+      if (process.env.NODE_ENV === 'production') {
+        // Use /tmp as absolute fallback
+        const fallbackPath = '/tmp/mortar.db';
+        console.log(`🔄 Using fallback database path: ${fallbackPath}`);
+        this.initializeWithPath(fallbackPath);
+        return;
+      }
+      throw dirError;
     }
     
+    this.initializeWithPath(dbLocation);
+  }
+
+  private initializeWithPath(dbLocation: string): void {
     console.log(`📊 Using database at: ${dbLocation}`);
     
     this.db = new sqlite3.Database(dbLocation, (err) => {
