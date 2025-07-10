@@ -1,5 +1,5 @@
-import * as express from 'express';
-import * as cors from 'cors';
+import express from 'express';
+import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -17,7 +17,15 @@ app.use(express.json());
 // Serve static files in production
 if (NODE_ENV === 'production') {
   const buildPath = path.join(__dirname, '../dist');
-  app.use(express.static(buildPath));
+  
+  // Configure static middleware with proper options
+  app.use(express.static(buildPath, {
+    maxAge: '1y', // Cache static assets for 1 year
+    etag: true,
+    index: false, // Don't serve index.html automatically - let catch-all handle routing
+    fallthrough: true // Continue to next middleware if file not found
+  }));
+  
   console.log(`🗂️  Serving static files from: ${buildPath}`);
 }
 
@@ -31,11 +39,22 @@ app.get('/api/test', (_req, res) => {
   res.json({ message: 'API is working!' });
 });
 
-// Catch-all handler for React app
+// Catch-all handler for React app - should be the VERY LAST route
 if (NODE_ENV === 'production') {
-  app.get('*', (_req, res) => {
-    const indexPath = path.join(__dirname, '../dist/index.html');
-    res.sendFile(indexPath);
+  // Use middleware instead of a route to avoid path-to-regexp issues with Express 5
+  app.use((req, res) => {
+    // Only handle requests that look like they want HTML (not static assets)
+    const acceptsHtml = req.headers.accept && req.headers.accept.includes('text/html');
+    const isApiRoute = req.path.startsWith('/api');
+    const isStaticAsset = /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|xml|txt)$/i.test(req.path);
+    
+    if (!isApiRoute && !isStaticAsset && (acceptsHtml || req.path === '/' || !req.path.includes('.'))) {
+      const indexPath = path.join(__dirname, '../dist/index.html');
+      res.sendFile(indexPath);
+    } else {
+      // Return 404 for unmatched routes
+      res.status(404).json({ error: 'Not found' });
+    }
   });
 }
 

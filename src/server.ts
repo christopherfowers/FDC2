@@ -27,7 +27,14 @@ if (NODE_ENV === 'production') {
   // Serve static files from the React app build directory
   const buildPath = path.join(__dirname, '../dist');
   console.log('Build Path:', buildPath);
-  app.use(express.static(buildPath));
+  
+  // Configure static middleware with proper options
+  app.use(express.static(buildPath, {
+    maxAge: '1y', // Cache static assets for 1 year
+    etag: true,
+    index: false, // Don't serve index.html automatically - let catch-all handle routing
+    fallthrough: true // Continue to next middleware if file not found
+  }));
   
   console.log(`🗂️  Serving static files from: ${buildPath}`);
 }
@@ -165,20 +172,24 @@ app.get('/api/ballistic-table/:systemId/:roundId', async (req, res) => {
   }
 });
 
-// Error handling middleware
-app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Unhandled error:', error);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
-// Catch-all handler: send back React's index.html file in production
+// Catch-all handler: send back React's index.html file for client-side routing
+// This should be the VERY LAST route to ensure it doesn't interfere with API routes or static assets
 if (NODE_ENV === 'production') {
-  app.get('/*', (_req, res, next) => {
-    if (!_req.path.startsWith('/api')) {
+  // Use middleware instead of a route to avoid path-to-regexp issues with Express 5
+  app.use((req, res) => {
+    // Only handle requests that look like they want HTML (not static assets)
+    const acceptsHtml = req.headers.accept && req.headers.accept.includes('text/html');
+    const isApiRoute = req.path.startsWith('/api');
+    const isStaticAsset = /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|xml|txt)$/i.test(req.path);
+    
+    if (!isApiRoute && !isStaticAsset && (acceptsHtml || req.path === '/' || !req.path.includes('.'))) {
       const indexPath = path.join(__dirname, '../dist/index.html');
       res.sendFile(indexPath);
     } else {
-      next(); // Let the next route handle it
+      // Return 404 for unmatched routes - make sure response hasn't been sent yet
+      if (!res.headersSent) {
+        res.status(404).json({ error: 'Not found' });
+      }
     }
   });
 } else {
@@ -187,6 +198,14 @@ if (NODE_ENV === 'production') {
     res.status(404).json({ error: 'Endpoint not found' });
   });
 }
+
+// Error handling middleware - must be after all routes and middleware
+app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('Unhandled error:', error);
+  if (!res.headersSent) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // Initialize database with sample data and start server
 async function startServer() {
