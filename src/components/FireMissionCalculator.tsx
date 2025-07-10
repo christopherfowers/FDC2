@@ -1,17 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faMapMarkerAlt,
-  faBullseye,
-  faCrosshairs,
-  faCalculator,
-  faExclamationTriangle,
-  faWifi,
-  faInfoCircle,
-  faSave,
-  faHistory
-} from '@fortawesome/free-solid-svg-icons';
 import { useApp } from '../contexts/AppContext';
 import { MGRSService } from '../services/mgrsService';
 import { MGRSInput, validateMGRSInput } from './MGRSInput';
@@ -302,7 +290,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
         {isOffline && (
           <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
             <div className="flex items-center space-x-2">
-              <FontAwesomeIcon icon={faWifi} className="text-yellow-600" />
+              <i className="fas fa-wifi text-yellow-600"></i>
               <p className="font-semibold">Offline Mode</p>
             </div>
             <p>Using cached data. Some features may be limited.</p>
@@ -313,14 +301,14 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
           {/* Step 1: Mortar Position (Required) */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-blue-800 mb-3">
-              <FontAwesomeIcon icon={faCrosshairs} className="mr-2" />
+              <i className="fas fa-crosshairs mr-2"></i>
               Step 1: Mortar Position (Required)
             </h3>
             <MGRSInput
               value={mortarGrid}
               onChange={(value) => setCalculatorState({ mortarGrid: value })}
               label="Mortar Position (MGRS)"
-              icon={<FontAwesomeIcon icon={faCrosshairs} className="text-green-600" />}
+              icon={<i className="fas fa-crosshairs text-green-600"></i>}
               placeholder="e.g., 1000010000"
             />
             {validationErrors.mortarGrid && (

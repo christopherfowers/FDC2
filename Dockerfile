@@ -1,22 +1,14 @@
 # Use Node.js LTS version
 FROM node:20-alpine
 
-# Accept FontAwesome token as build argument
-ARG FONTAWESOME_NPM_AUTH_TOKEN
-
 # Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY .npmrc ./
 
-# Configure FontAwesome Pro registry and install dependencies
-RUN if [ -n "$FONTAWESOME_NPM_AUTH_TOKEN" ]; then \
-      echo "@fortawesome:registry=https://npm.fontawesome.com/" > ~/.npmrc && \
-      echo "//npm.fontawesome.com/:_authToken=$FONTAWESOME_NPM_AUTH_TOKEN" >> ~/.npmrc; \
-    fi && \
-    npm ci --only=production
+# Install dependencies
+RUN npm ci --only=production
 
 # Copy source code
 COPY . .
