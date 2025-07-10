@@ -26,8 +26,38 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         registry-url: 'https://registry.npmjs.org'
 
+    - name: Install system dependencies (Ubuntu)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential python3-dev python3-setuptools
+
+    - name: Set up Python for node-gyp
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Clear npm cache
+      run: npm cache clean --force
+
+    - name: Debug npm and node versions
+      run: |
+        echo "Node version: $(node --version)"
+        echo "NPM version: $(npm --version)"
+        echo "NPM config: $(npm config list)"
+
     - name: Install dependencies
-      run: npm install
+      run: |
+        echo "Installing dependencies..."
+        npm ci --no-optional --verbose
+      env:
+        SQLITE3_BINARY_HOST_MIRROR: https://registry.npmmirror.com/-/binary/sqlite3/
+        NPM_CONFIG_LOGLEVEL: verbose
+
+    - name: Install SQLite3 fallback (if needed)
+      if: failure()
+      run: |
+        echo "Standard install failed, trying SQLite3 rebuild..."
+        npm install sqlite3 --build-from-source
 
     - name: Run linting
       run: npm run lint
