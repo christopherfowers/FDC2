@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faCopy, faDownload, faTrash, faEdit, faBullseye, faCompass, faRulerCombined } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faCopy, faDownload, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import type { FireMissionRecord } from '../services/fireMissionHistoryService';
 
 // Helper function to format MGRS coordinates

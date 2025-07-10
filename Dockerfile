@@ -9,6 +9,7 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY .npmrc ./
 
 # Configure FontAwesome Pro registry and install dependencies
 RUN if [ -n "$FONTAWESOME_NPM_AUTH_TOKEN" ]; then \
