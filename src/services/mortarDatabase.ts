@@ -52,6 +52,7 @@ export class MortarDatabase {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           mortarSystemId INTEGER NOT NULL,
           mortarRoundId INTEGER NOT NULL,
+          charge INTEGER NOT NULL DEFAULT 0,
           avgDispersionM REAL NOT NULL,
           rangeM INTEGER NOT NULL,
           elevationMils INTEGER NOT NULL,
@@ -60,7 +61,7 @@ export class MortarDatabase {
           dTofPer100mS REAL,
           FOREIGN KEY (mortarSystemId) REFERENCES mortar_system(id),
           FOREIGN KEY (mortarRoundId) REFERENCES mortar_round(id),
-          UNIQUE(mortarSystemId, mortarRoundId, rangeM)
+          UNIQUE(mortarSystemId, mortarRoundId, charge, rangeM)
         )
       `);
 
@@ -71,8 +72,193 @@ export class MortarDatabase {
     });
   }
 
-  // Initialize with sample data
+  // Initialize with sample data from CSV files
   async seedDatabase(): Promise<void> {
+    const fs = await import('fs');
+    const csv = await import('csv-parser');
+    
+    // Define all CSV files to load
+    const csvFiles = [
+      'M821_HE_mortar_data.csv',
+      'M819_Smoke_Shell_Ballistics.csv', 
+      'M853A1_Illumination_Round_Ballistics.csv',
+      'M879_Practice_Round_Ballistics.csv'
+    ];
+
+    interface CSVRow {
+      MortarSystem: string;
+      Shell: string;
+      Diameter: string;
+      Charge: string;
+      AverageDeviation: string;
+      Range: string;
+      Elevation: string;
+      TimeOfFlight: string;
+      DElevPer100MDr: string;
+      ToFPer100MDr: string;
+    }
+
+    const getRoundType = (shellName: string): string => {
+      const shell = shellName.toLowerCase();
+      if (shell.includes('he') || shell.includes('high explosive')) {
+        return 'HE';
+      } else if (shell.includes('smoke')) {
+        return 'Smoke';
+      } else if (shell.includes('illumination') || shell.includes('illum')) {
+        return 'Illumination';
+      } else if (shell.includes('practice')) {
+        return 'Practice';
+      } else {
+        return 'HE'; // Default fallback
+      }
+    };
+
+    // Load CSV data
+    const csvData: CSVRow[] = [];
+    const dataDir = path.join(__dirname, '../../data');
+    
+    for (const csvFile of csvFiles) {
+      const csvPath = path.join(dataDir, csvFile);
+      
+      if (!fs.default.existsSync(csvPath)) {
+        console.log(`⚠️  CSV file not found: ${csvFile}, skipping...`);
+        continue;
+      }
+
+      console.log(`📊 Loading ${csvFile}...`);
+      
+      await new Promise<void>((resolve, reject) => {
+        const results: CSVRow[] = [];
+        
+        fs.default.createReadStream(csvPath)
+          .pipe(csv.default())
+          .on('data', (data: CSVRow) => results.push(data))
+          .on('end', () => {
+            csvData.push(...results);
+            console.log(`   ✓ Loaded ${results.length} rows from ${csvFile}`);
+            resolve();
+          })
+          .on('error', reject);
+      });
+    }
+
+    if (csvData.length === 0) {
+      console.log('⚠️  No CSV data loaded, using fallback sample data');
+      // Fallback to hardcoded data if no CSV files found
+      return this.seedWithFallbackData();
+    }
+
+    console.log(`📊 Total loaded: ${csvData.length} rows from all CSV files`);
+
+    // Clear existing data
+    await this.clearAllData();
+
+    // Extract unique mortar systems (normalize system names)
+    const uniqueSystems = new Map<string, { name: string; caliberMm: number }>();
+    csvData.forEach(row => {
+      // Normalize mortar system names - they're all M252 mortars
+      const normalizedSystemName = 'M252';
+      
+      if (!uniqueSystems.has(normalizedSystemName)) {
+        uniqueSystems.set(normalizedSystemName, {
+          name: normalizedSystemName,
+          caliberMm: parseFloat(row.Diameter)
+        });
+      }
+    });
+
+    // Extract unique rounds
+    const uniqueRounds = new Map<string, { name: string; roundType: string; caliberMm: number }>();
+    csvData.forEach(row => {
+      const roundKey = `${row.Shell}_${row.Diameter}`;
+      if (!uniqueRounds.has(roundKey)) {
+        uniqueRounds.set(roundKey, {
+          name: row.Shell,
+          roundType: getRoundType(row.Shell),
+          caliberMm: parseFloat(row.Diameter)
+        });
+      }
+    });
+
+    // Insert mortar systems
+    console.log('🎯 Inserting mortar systems...');
+    const systemIds = new Map<string, number>();
+    for (const [key, system] of uniqueSystems) {
+      const id = await this.insertMortarSystem({
+        name: system.name,
+        caliberMm: system.caliberMm,
+        nationality: 'US'
+      });
+      systemIds.set(key, id);
+      console.log(`   ✓ ${system.name} (${system.caliberMm}mm) -> ID: ${id}`);
+    }
+
+    // Insert rounds
+    console.log('💥 Inserting mortar rounds...');
+    const roundIds = new Map<string, number>();
+    for (const [key, round] of uniqueRounds) {
+      const id = await this.insertMortarRound({
+        name: round.name,
+        roundType: round.roundType,
+        caliberMm: round.caliberMm,
+        nationality: 'US'
+      });
+      roundIds.set(key, id);
+      console.log(`   ✓ ${round.name} (${round.roundType}, ${round.caliberMm}mm) -> ID: ${id}`);
+    }
+
+    // Process and insert ballistic data
+    console.log('📈 Inserting ballistic data...');
+    let insertCount = 0;
+
+    for (const row of csvData) {
+      // Use normalized system name for lookup
+      const normalizedSystemName = 'M252';
+      const systemId = systemIds.get(normalizedSystemName);
+      const roundKey = `${row.Shell}_${row.Diameter}`;
+      const roundId = roundIds.get(roundKey);
+
+      if (systemId && roundId) {
+        const data = {
+          mortarSystemId: systemId,
+          mortarRoundId: roundId,
+          charge: parseInt(row.Charge),
+          rangeM: parseInt(row.Range),
+          elevationMils: parseInt(row.Elevation),
+          timeOfFlightS: parseFloat(row.TimeOfFlight),
+          avgDispersionM: parseInt(row.AverageDeviation),
+          dElevPer100mMils: row.DElevPer100MDr && row.DElevPer100MDr.trim() !== '' ? 
+            parseFloat(row.DElevPer100MDr) : undefined,
+          dTofPer100mS: row.ToFPer100MDr && row.ToFPer100MDr.trim() !== '' ? 
+            parseFloat(row.ToFPer100MDr) : undefined
+        };
+
+        await this.insertBallisticData(data);
+        insertCount++;
+      }
+    }
+
+    console.log(`   ✓ Inserted ${insertCount} ballistic data points`);
+
+    // Print summary
+    console.log('\n📋 Database Summary:');
+    const systems = await this.getMortarSystems();
+    const rounds = await this.getMortarRounds();
+    const ballistic = await this.getBallisticData({});
+
+    console.log(`   🎯 Mortar Systems: ${systems.length}`);
+    systems.forEach(s => console.log(`      - ${s.name} (${s.caliberMm}mm)`));
+    
+    console.log(`   💥 Mortar Rounds: ${rounds.length}`);
+    rounds.forEach(r => console.log(`      - ${r.name} (${r.roundType})`));
+    
+    console.log(`   📊 Ballistic Data Points: ${ballistic.length}`);
+    
+    console.log('\n✅ Database seeding completed successfully!');
+  }
+
+  // Fallback method for when CSV files aren't available
+  private async seedWithFallbackData(): Promise<void> {
     return new Promise((resolve) => {
       this.db.serialize(() => {
         // M252 mortar system and M821 HE round data from CSV
@@ -365,12 +551,13 @@ export class MortarDatabase {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
         INSERT INTO mortar_round_data 
-        (mortarSystemId, mortarRoundId, rangeM, elevationMils, timeOfFlightS, avgDispersionM, dElevPer100mMils, dTofPer100mS) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (mortarSystemId, mortarRoundId, charge, rangeM, elevationMils, timeOfFlightS, avgDispersionM, dElevPer100mMils, dTofPer100mS) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
       stmt.run(
         data.mortarSystemId, 
         data.mortarRoundId, 
+        data.charge || 0,
         data.rangeM, 
         data.elevationMils, 
         data.timeOfFlightS, 

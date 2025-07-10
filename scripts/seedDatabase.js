@@ -1,37 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-import csv from 'csv-parser';
-import { MortarDatabase } from '../src/services/mortarDatabase.js';
-
-interface CSVRow {
-  MortarSystem: string;
-  Shell: string;
-  Diameter: string;
-  Charge: string;
-  AverageDeviation: string;
-  Range: string;
-  Elevation: string;
-  TimeOfFlight: string;
-  DElevPer100MDr: string;
-  ToFPer100MDr: string;
-}
-
-interface ParsedBallisticData {
-  mortarSystemId: number;
-  mortarRoundId: number;
-  charge: number;
-  rangeM: number;
-  elevationMils: number;
-  timeOfFlightS: number;
-  avgDispersionM: number;
-  dElevPer100mMils?: number;
-  dTofPer100mS?: number;
-}
+const fs = require('fs');
+const path = require('path');
+const csv = require('csv-parser');
+const { MortarDatabase } = require('../src/services/mortarDatabase');
 
 class DatabaseSeeder {
-  private db: MortarDatabase;
-  private csvData: CSVRow[] = [];
-
   constructor() {
     // Create a fresh database
     const dbPath = path.join(process.cwd(), 'data', 'mortar.db');
@@ -43,51 +15,26 @@ class DatabaseSeeder {
     }
     
     this.db = new MortarDatabase(dbPath);
+    this.csvData = [];
   }
 
-  async loadCSVData(csvPath: string): Promise<void> {
+  async loadCSVData(csvPath) {
     return new Promise((resolve, reject) => {
-      const results: CSVRow[] = [];
+      const results = [];
       
       fs.createReadStream(csvPath)
         .pipe(csv())
-        .on('data', (data: CSVRow) => results.push(data))
+        .on('data', (data) => results.push(data))
         .on('end', () => {
-          this.csvData.push(...results);
-          console.log(`📊 Loaded ${results.length} rows from ${path.basename(csvPath)}`);
+          this.csvData = results;
+          console.log(`📊 Loaded ${results.length} rows from CSV`);
           resolve();
         })
         .on('error', reject);
     });
   }
 
-  async loadAllCSVFiles(csvPaths: string[]): Promise<void> {
-    console.log(`📁 Loading data from ${csvPaths.length} CSV files...`);
-    for (const csvPath of csvPaths) {
-      if (!fs.existsSync(csvPath)) {
-        throw new Error(`CSV file not found: ${csvPath}`);
-      }
-      await this.loadCSVData(csvPath);
-    }
-    console.log(`✅ Total loaded: ${this.csvData.length} rows from all files`);
-  }
-
-  private getRoundType(shellName: string): string {
-    const shell = shellName.toLowerCase();
-    if (shell.includes('he') || shell.includes('high explosive')) {
-      return 'HE';
-    } else if (shell.includes('smoke')) {
-      return 'Smoke';
-    } else if (shell.includes('illumination') || shell.includes('illum')) {
-      return 'Illumination';
-    } else if (shell.includes('practice')) {
-      return 'Practice';
-    } else {
-      return 'HE'; // Default fallback
-    }
-  }
-
-  async seedDatabase(): Promise<void> {
+  async seedDatabase() {
     console.log('🌱 Starting database seeding...');
 
     // Clear existing data
@@ -95,7 +42,7 @@ class DatabaseSeeder {
     await this.db.clearAllData();
 
     // Extract unique mortar systems
-    const uniqueSystems = new Map<string, { name: string; caliberMm: number }>();
+    const uniqueSystems = new Map();
     this.csvData.forEach(row => {
       if (!uniqueSystems.has(row.MortarSystem)) {
         uniqueSystems.set(row.MortarSystem, {
@@ -106,13 +53,13 @@ class DatabaseSeeder {
     });
 
     // Extract unique rounds
-    const uniqueRounds = new Map<string, { name: string; roundType: string; caliberMm: number }>();
+    const uniqueRounds = new Map();
     this.csvData.forEach(row => {
       const roundKey = `${row.Shell}_${row.Diameter}`;
       if (!uniqueRounds.has(roundKey)) {
         uniqueRounds.set(roundKey, {
           name: row.Shell,
-          roundType: this.getRoundType(row.Shell),
+          roundType: 'HE', // High Explosive based on the M821 HE designation
           caliberMm: parseFloat(row.Diameter)
         });
       }
@@ -120,7 +67,7 @@ class DatabaseSeeder {
 
     // Insert mortar systems
     console.log('🎯 Inserting mortar systems...');
-    const systemIds = new Map<string, number>();
+    const systemIds = new Map();
     for (const [key, system] of uniqueSystems) {
       const id = await this.db.insertMortarSystem({
         name: system.name,
@@ -133,7 +80,7 @@ class DatabaseSeeder {
 
     // Insert rounds
     console.log('💥 Inserting mortar rounds...');
-    const roundIds = new Map<string, number>();
+    const roundIds = new Map();
     for (const [key, round] of uniqueRounds) {
       const id = await this.db.insertMortarRound({
         name: round.name,
@@ -147,7 +94,7 @@ class DatabaseSeeder {
 
     // Process and insert ballistic data
     console.log('📈 Inserting ballistic data...');
-    const ballisticData: ParsedBallisticData[] = [];
+    const ballisticData = [];
 
     this.csvData.forEach(row => {
       const systemId = systemIds.get(row.MortarSystem);
@@ -155,7 +102,7 @@ class DatabaseSeeder {
       const roundId = roundIds.get(roundKey);
 
       if (systemId && roundId) {
-        const data: ParsedBallisticData = {
+        const data = {
           mortarSystemId: systemId,
           mortarRoundId: roundId,
           charge: parseInt(row.Charge),
@@ -209,7 +156,7 @@ class DatabaseSeeder {
     console.log('\n✅ Database seeding completed successfully!');
   }
 
-  async close(): Promise<void> {
+  async close() {
     await this.db.close();
   }
 }
@@ -220,20 +167,15 @@ async function main() {
   const seeder = new DatabaseSeeder();
   
   try {
-    // Define all CSV files to load
-    const csvFiles = [
-      'M821_HE_mortar_data.csv',
-      'M819_Smoke_Shell_Ballistics.csv', 
-      'M853A1_Illumination_Round_Ballistics.csv',
-      'M879_Practice_Round_Ballistics.csv'
-    ];
+    const csvPath = path.join(process.cwd(), 'data', 'M821_HE_mortar_data.csv');
+    console.log(`📁 Looking for CSV file at: ${csvPath}`);
     
-    const csvPaths = csvFiles.map(file => path.join(process.cwd(), 'data', file));
-    console.log('📁 CSV files to load:');
-    csvFiles.forEach(file => console.log(`   - ${file}`));
+    if (!fs.existsSync(csvPath)) {
+      throw new Error(`CSV file not found: ${csvPath}`);
+    }
     
-    console.log('✅ Loading data from all CSV files...');
-    await seeder.loadAllCSVFiles(csvPaths);
+    console.log('✅ CSV file found, loading data...');
+    await seeder.loadCSVData(csvPath);
     await seeder.seedDatabase();
     console.log('🎉 Seeding completed successfully!');
     
@@ -245,6 +187,4 @@ async function main() {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main();
-}
+main();

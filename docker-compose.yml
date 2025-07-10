@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   fdc2-app:
-    build: .
+    image: christopherfowers/fdc2:latest
+    container_name: fdc2-container
     ports:
       - "3001:3001"
     environment:
@@ -16,8 +17,8 @@ services:
       retries: 3
       start_period: 40s
     volumes:
-      # Mount data directory for SQLite database persistence (optional)
-      - ./data:/app/data
+      # Mount a named volume for SQLite database persistence
+      - fdc2-data:/app/data
     networks:
       - fdc2-network
 
@@ -25,7 +26,7 @@ networks:
   fdc2-network:
     driver: bridge
 
-# Optional: Volume for data persistence
+# Volume for data persistence
 volumes:
   fdc2-data:
     driver: local

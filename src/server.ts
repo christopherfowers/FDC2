@@ -26,6 +26,7 @@ const mortarDb = new MortarDatabase();
 if (NODE_ENV === 'production') {
   // Serve static files from the React app build directory
   const buildPath = path.join(__dirname, '../dist');
+  console.log('Build Path:', buildPath);
   app.use(express.static(buildPath));
   
   console.log(`🗂️  Serving static files from: ${buildPath}`);
@@ -165,16 +166,20 @@ app.get('/api/ballistic-table/:systemId/:roundId', async (req, res) => {
 });
 
 // Error handling middleware
-app.use((error: Error, _req: express.Request, res: express.Response) => {
+app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Unhandled error:', error);
   res.status(500).json({ error: 'Internal server error' });
 });
 
 // Catch-all handler: send back React's index.html file in production
 if (NODE_ENV === 'production') {
-  app.get('*', (_req, res) => {
-    const indexPath = path.join(__dirname, '../dist/index.html');
-    res.sendFile(indexPath);
+  app.get('*', (_req, res, next) => {
+    if (!_req.path.startsWith('/api')) {
+      const indexPath = path.join(__dirname, '../dist/index.html');
+      res.sendFile(indexPath);
+    } else {
+      next(); // Let the next route handle it
+    }
   });
 } else {
   // 404 handler for development (API only)
