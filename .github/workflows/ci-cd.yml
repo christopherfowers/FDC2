@@ -48,8 +48,8 @@ jobs:
     - name: Install dependencies
       run: |
         echo "Installing dependencies..."
-        # First try npm ci, fall back to npm install if needed
-        npm ci --verbose --no-optional || npm install --verbose
+        # Try npm install first (more permissive), then npm ci if successful
+        npm install --verbose --legacy-peer-deps || (npm cache clean --force && npm install --verbose --legacy-peer-deps --no-optional)
       env:
         SQLITE3_BINARY_HOST_MIRROR: https://registry.npmmirror.com/-/binary/sqlite3/
         NPM_CONFIG_LOGLEVEL: verbose
