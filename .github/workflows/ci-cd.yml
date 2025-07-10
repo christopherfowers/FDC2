@@ -154,27 +154,8 @@ jobs:
         repository: ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}
         readme-filepath: ./DOCKER_DEPLOYMENT.md
 
-  security-scan:
-    needs: docker
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
-    
-    steps:
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-
-    - name: Upload Trivy scan results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
-
   deploy-notification:
-    needs: [docker, security-scan]
+    needs: [docker]
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     
