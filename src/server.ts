@@ -27,7 +27,22 @@ if (NODE_ENV === 'production') {
   // Serve static files from the React app build directory
   const buildPath = path.join(__dirname, '../dist');
   console.log('Build Path:', buildPath);
-  app.use(express.static(buildPath));
+  
+  // Serve static files with proper configuration
+  app.use(express.static(buildPath, {
+    dotfiles: 'ignore',
+    etag: true,
+    extensions: ['html', 'js', 'css'],
+    index: false, // Disable automatic index serving to handle SPA routing
+    maxAge: '1d',
+    redirect: false,
+    setHeaders: (res, path) => {
+      // Set cache headers for different file types
+      if (path.endsWith('.html')) {
+        res.set('Cache-Control', 'public, max-age=0');
+      }
+    }
+  }));
   
   console.log(`🗂️  Serving static files from: ${buildPath}`);
 }
@@ -171,14 +186,16 @@ app.use((error: Error, _req: express.Request, res: express.Response, _next: expr
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Catch-all handler: send back React's index.html file in production
+// SPA fallback: serve index.html for non-API routes in production
 if (NODE_ENV === 'production') {
-  app.get('/*', (_req, res, next) => {
-    if (!_req.path.startsWith('/api')) {
+  app.use((req, res) => {
+    // Only serve index.html for non-API routes
+    if (!req.path.startsWith('/api')) {
       const indexPath = path.join(__dirname, '../dist/index.html');
       res.sendFile(indexPath);
     } else {
-      next(); // Let the next route handle it
+      // API routes that don't exist should return 404
+      res.status(404).json({ error: 'API endpoint not found' });
     }
   });
 } else {
