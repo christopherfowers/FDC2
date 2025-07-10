@@ -26,9 +26,9 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         registry-url: 'https://registry.npmjs.org'
 
-    - name: Configure FontAwesome Pro npm token and registry
+    - name: Set up Font Awesome Pro auth
       run: |
-        echo "@fortawesome:registry=https://npm.fontawesome.com/" >> ~/.npmrc
+        echo "@fortawesome:registry=https://npm.fontawesome.com/" > ~/.npmrc
         echo "//npm.fontawesome.com/:_authToken=${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}" >> ~/.npmrc
 
     - name: Install system dependencies (Ubuntu)
