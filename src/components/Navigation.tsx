@@ -1,10 +1,4 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faCalculator, 
-  faHistory,
-  faCog 
-} from '@fortawesome/free-solid-svg-icons';
 import { FDCLogo } from './FDCLogo';
 
 export function Navigation() {
@@ -36,7 +30,7 @@ export function Navigation() {
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
               }`}
             >
-              <FontAwesomeIcon icon={faCalculator} />
+              <i className="fas fa-calculator"></i>
               <span className="hidden sm:inline">Calculator</span>
             </Link>
             
@@ -48,7 +42,7 @@ export function Navigation() {
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
               }`}
             >
-              <FontAwesomeIcon icon={faHistory} />
+              <i className="fas fa-history"></i>
               <span className="hidden sm:inline">History</span>
             </Link>
             
@@ -60,7 +54,7 @@ export function Navigation() {
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
               }`}
             >
-              <FontAwesomeIcon icon={faCog} />
+              <i className="fas fa-cog"></i>
               <span className="hidden sm:inline">Settings</span>
             </Link>
           </div>

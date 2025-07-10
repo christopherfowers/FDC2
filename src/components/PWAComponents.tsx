@@ -1,10 +1,5 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faWifi, 
-  faDownload, 
-  faSync,
-  faTrash
-} from '@fortawesome/free-solid-svg-icons';
+
+
 import { useApp } from '../contexts/AppContext';
 
 export function PWAStatus() {
@@ -15,7 +10,7 @@ export function PWAStatus() {
       {/* Offline Indicator */}
       {isOffline && (
         <div className="bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2">
-          <FontAwesomeIcon icon={faWifi} className="text-white opacity-50" />
+          <i className="fas fa-wifi text-white opacity-50"></i>
           <span className="text-sm font-medium">Offline Mode</span>
         </div>
       )}
@@ -25,7 +20,7 @@ export function PWAStatus() {
         <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg">
           <div className="flex items-center justify-between space-x-4">
             <div className="flex items-center space-x-2">
-              <FontAwesomeIcon icon={faDownload} />
+              <i className="fas fa-download"></i>
               <span className="text-sm font-medium">Update Available</span>
             </div>
             <button
@@ -70,7 +65,7 @@ export function AppSettings() {
           disabled={isLoading}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
         >
-          <FontAwesomeIcon icon={faSync} className={isLoading ? 'animate-spin' : ''} />
+          <i className={`fas fa-sync ${isLoading ? 'animate-spin' : ''}`}></i>
           <span>{isLoading ? 'Refreshing...' : 'Refresh Data'}</span>
         </button>
 
@@ -78,7 +73,7 @@ export function AppSettings() {
           onClick={clearCache}
           className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 flex items-center justify-center space-x-2"
         >
-          <FontAwesomeIcon icon={faTrash} />
+          <i className="fas fa-trash"></i>
           <span>Clear Cache & Restart</span>
         </button>
 

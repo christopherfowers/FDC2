@@ -1,20 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faArrowLeft, 
-  faBullseye, 
-  faCrosshairs, 
-  faCompass, 
-  faRulerCombined,
-  faClock,
-  faLocationDot,
-  faEye,
-  faSave,
-  faEdit,
-  faCopy,
-  faShare
-} from '@fortawesome/free-solid-svg-icons';
 import { fireMissionHistoryService } from '../services/fireMissionHistoryService';
 import { useApp } from '../contexts/AppContext';
 
@@ -241,12 +226,12 @@ Time of Flight: ${result.timeOfFlightS}s`;
           onClick={() => navigate('/')}
           className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
         >
-          <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
+          <i className="fas fa-arrow-left mr-2"></i>
           Back to Calculator
         </button>
         
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          <FontAwesomeIcon icon={faBullseye} className="mr-3 text-red-600" />
+          <i className="fas fa-bullseye mr-3 text-red-600"></i>
           Fire Mission Results
         </h1>
         <p className="text-gray-600">
@@ -266,7 +251,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              <FontAwesomeIcon icon={faLocationDot} className="mr-2 text-blue-600" />
+              <i className="fas fa-map-marker-alt mr-2 text-blue-600"></i>
               Mission Overview
             </h2>
             
@@ -303,7 +288,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
               {result.isUsingMortarAsObserver && (
                 <div className="bg-blue-50 p-3 rounded">
                   <p className="text-sm text-blue-700">
-                    <FontAwesomeIcon icon={faEye} className="mr-1" />
+                    <i className="fas fa-eye mr-1"></i>
                     Using mortar position as observer
                   </p>
                 </div>
@@ -315,7 +300,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
           {!result.isUsingMortarAsObserver && (
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                <FontAwesomeIcon icon={faEye} className="mr-2 text-purple-600" />
+                <i className="fas fa-eye mr-2 text-purple-600"></i>
                 Observer Data
               </h2>
               
@@ -344,19 +329,19 @@ Time of Flight: ${result.timeOfFlightS}s`;
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              <FontAwesomeIcon icon={faCrosshairs} className="mr-2 text-green-600" />
+              <i className="fas fa-crosshairs mr-2 text-green-600"></i>
               Firing Solution
             </h2>
             
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-green-50 p-4 rounded-lg text-center">
-                  <FontAwesomeIcon icon={faRulerCombined} className="text-2xl text-green-600 mb-2" />
+                  <i className="fas fa-ruler-combined text-2xl text-green-600 mb-2"></i>
                   <label className="block text-sm font-medium text-gray-500">Distance</label>
                   <p className="text-2xl font-bold text-green-700">{Math.round(result.targetDistance)}m</p>
                 </div>
                 <div className="bg-blue-50 p-4 rounded-lg text-center">
-                  <FontAwesomeIcon icon={faCompass} className="text-2xl text-blue-600 mb-2" />
+                  <i className="fas fa-compass text-2xl text-blue-600 mb-2"></i>
                   <label className="block text-sm font-medium text-gray-500">Azimuth</label>
                   <p className="text-2xl font-bold text-blue-700">{result.azimuthMils}</p>
                   <p className="text-sm text-gray-500">mils</p>
@@ -377,7 +362,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg text-center">
-                  <FontAwesomeIcon icon={faClock} className="text-2xl text-gray-600 mb-2" />
+                  <i className="fas fa-clock text-2xl text-gray-600 mb-2"></i>
                   <label className="block text-sm font-medium text-gray-500">Time of Flight</label>
                   <p className="text-xl font-bold text-gray-700">{result.timeOfFlightS}s</p>
                 </div>
@@ -401,7 +386,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-800">
-                <FontAwesomeIcon icon={faEdit} className="mr-2 text-orange-600" />
+                <i className="fas fa-edit mr-2 text-orange-600"></i>
                 Fire Direction Adjustments
               </h2>
               <button
@@ -415,7 +400,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
             {/* Observer Point of View Info */}
             <div className="mb-4 p-3 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800 font-medium">
-                <FontAwesomeIcon icon={faEye} className="mr-2" />
+                <i className="fas fa-eye mr-2"></i>
                 Adjustments Point of View: {result.isUsingMortarAsObserver ? 'Mortar Team' : 'Forward Observer'}
               </p>
               <p className="text-xs text-blue-600 mt-1">
@@ -546,7 +531,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
                 )}
                 className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm"
               >
-                <FontAwesomeIcon icon={faCopy} className="mr-1" />
+                <i className="fas fa-copy mr-1"></i>
                 Copy Firing Data
               </button>
               
@@ -554,7 +539,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
                 onClick={shareResults}
                 className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded text-sm"
               >
-                <FontAwesomeIcon icon={faShare} className="mr-1" />
+                <i className="fas fa-share mr-1"></i>
                 Share Results
               </button>
             </div>
@@ -578,7 +563,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
                 disabled={isSaving}
                 className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-3 px-6 rounded-lg font-semibold"
               >
-                <FontAwesomeIcon icon={faSave} className="mr-2" />
+                <i className="fas fa-save mr-2"></i>
                 {isSaving ? 'Saving...' : 'Save to History'}
               </button>
             </div>
@@ -592,7 +577,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-800">
-                <FontAwesomeIcon icon={faEdit} className="mr-2 text-yellow-600" />
+                <i className="fas fa-edit mr-2 text-yellow-600"></i>
                 Adjust Observer Settings
               </h3>
               
@@ -632,7 +617,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
                     onClick={() => setShowAdjustments(false)}
                     className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-lg font-semibold"
                   >
-                    <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
+                    <i className="fas fa-arrow-left mr-2"></i>
                     Back
                   </button>
                   
@@ -641,7 +626,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
                     disabled={isCalculating}
                     className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-semibold"
                   >
-                    <FontAwesomeIcon icon={faSave} className="mr-2" />
+                    <i className="fas fa-save mr-2"></i>
                     {isCalculating ? 'Applying...' : 'Apply Adjustments'}
                   </button>
                 </div>
@@ -657,7 +642,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
           onClick={() => navigate('/')}
           className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold"
         >
-          <FontAwesomeIcon icon={faEdit} className="mr-2" />
+          <i className="fas fa-edit mr-2"></i>
           Make Adjustments
         </button>
         

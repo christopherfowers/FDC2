@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faExclamationTriangle, faInfoCircle, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { MGRSService } from '../services/mgrsService';
 
 interface MGRSInputProps {
@@ -93,9 +91,9 @@ export function MGRSInput({
   const getValidationIcon = () => {
     if (validation.isValid === null) return null;
     if (validation.isValid) {
-      return <FontAwesomeIcon icon={faCheckCircle} className="text-green-500" />;
+      return <i className="fas fa-check-circle text-green-500"></i>;
     }
-    return <FontAwesomeIcon icon={faExclamationTriangle} className="text-red-500" />;
+    return <i className="fas fa-exclamation-triangle text-red-500"></i>;
   };
 
   const getInputClasses = () => {
@@ -320,7 +318,7 @@ export function MGRSInput({
           onClick={() => setShowHelp(!showHelp)}
           className="text-xs text-blue-600 hover:text-blue-800"
         >
-          <FontAwesomeIcon icon={faInfoCircle} className="mr-1" />
+          <i className="fas fa-info-circle mr-1"></i>
           Help
         </button>
       </div>
@@ -349,7 +347,7 @@ export function MGRSInput({
               className="text-gray-400 hover:text-gray-600 transition-colors"
               title="Clear input"
             >
-              <FontAwesomeIcon icon={faTimes} className="text-xs" />
+              <i className="fas fa-times text-xs"></i>
             </button>
           )}
           {getValidationIcon()}
@@ -396,10 +394,7 @@ export function MGRSInput({
       {/* Error/hint message */}
       {(validation.error || validation.hint) && (
         <div className={`mt-1 text-xs ${validation.error ? 'text-red-600' : 'text-blue-600'}`}>
-          <FontAwesomeIcon 
-            icon={validation.error ? faExclamationTriangle : faInfoCircle} 
-            className="mr-1" 
-          />
+          <i className={`fas ${validation.error ? 'fa-exclamation-triangle' : 'fa-info-circle'} mr-1`}></i>
           {validation.error || validation.hint}
         </div>
       )}

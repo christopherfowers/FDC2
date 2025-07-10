@@ -6,6 +6,18 @@ import { MGRSInput, validateMGRSInput } from './MGRSInput';
 import { fireMissionHistoryService } from '../services/fireMissionHistoryService';
 import type { FireMissionRecord } from '../services/fireMissionHistoryService';
 
+interface FireSolution {
+  fireCommand?: string;
+  azimuthMils?: number;
+  elevationMils?: number;
+  chargeLevel?: number;
+  timeOfFlight?: number;
+  rangeMeters?: number;
+  quadrant?: string;
+  adjustedTargetGrid?: string;
+  [key: string]: unknown; // Allow additional properties
+}
+
 interface FireMissionCalculatorProps {
   initialMission?: FireMissionRecord;
 }
@@ -15,7 +27,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<FireSolution | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -245,14 +257,14 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
         targetGrid: finalTargetGrid,
         system: selectedSystemData?.name || 'Unknown System',
         round: selectedRoundData?.name || 'Unknown Round',
-        fireCommand: result.fireCommand,
+        fireCommand: result.fireCommand || '',
         fireSolution: {
-          azimuthMils: result.azimuthMils,
-          elevationMils: result.elevationMils,
-          chargeLevel: result.chargeLevel,
-          timeOfFlight: result.timeOfFlight,
-          rangeMeters: result.rangeMeters,
-          quadrant: result.quadrant
+          azimuthMils: result.azimuthMils || 0,
+          elevationMils: result.elevationMils || 0,
+          chargeLevel: String(result.chargeLevel || 0),
+          timeOfFlight: result.timeOfFlight || 0,
+          rangeMeters: result.rangeMeters || 0,
+          quadrant: Number(result.quadrant || 0)
         },
         adjustments: (rangeAdjustmentM !== 0 || directionAdjustmentMils !== 0) ? {
           rangeAdjustmentM,
@@ -319,7 +331,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
           {/* Step 2: Forward Observer Data (Optional) */}
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-orange-800 mb-3">
-              <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2" />
+              <i className="fas fa-map-marker-alt mr-2"></i>
               Step 2: Forward Observer Data (Optional)
             </h3>
             <p className="text-sm text-orange-700 mb-4">
@@ -332,7 +344,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
                   value={observerGrid}
                   onChange={(value) => setCalculatorState({ observerGrid: value })}
                   label="FO Position (MGRS)"
-                  icon={<FontAwesomeIcon icon={faMapMarkerAlt} className="text-blue-600" />}
+                  icon={<i className="fas fa-map-marker-alt text-blue-600"></i>}
                   placeholder="e.g., 1250010000"
                 />
                 {validationErrors.observerGrid && (
@@ -387,7 +399,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
           {/* Step 3: Target Grid */}
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-red-800 mb-3">
-              <FontAwesomeIcon icon={faBullseye} className="mr-2" />
+              <i className="fas fa-bullseye mr-2"></i>
               Step 3: Target Location
             </h3>
             
@@ -395,7 +407,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
               <div className="space-y-3">
                 <div className="bg-green-100 border border-green-300 rounded p-3">
                   <p className="text-green-800 font-medium">
-                    <FontAwesomeIcon icon={faInfoCircle} className="mr-2" />
+                    <i className="fas fa-info-circle mr-2"></i>
                     Target grid calculated from FO data
                   </p>
                   <p className="text-green-700 text-lg font-mono mt-1">{calculatedTargetGrid}</p>
@@ -408,7 +420,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
                       value={targetGrid}
                       onChange={(value) => setCalculatorState({ targetGrid: value })}
                       label="Manual Target Grid (Optional Override)"
-                      icon={<FontAwesomeIcon icon={faBullseye} className="text-red-600" />}
+                      icon={<i className="fas fa-bullseye text-red-600"></i>}
                       placeholder="e.g., 1200011000"
                     />
                     {validationErrors.targetGrid && (
@@ -429,7 +441,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
                   value={targetGrid}
                   onChange={(value) => setCalculatorState({ targetGrid: value })}
                   label="Target Grid (MGRS)"
-                  icon={<FontAwesomeIcon icon={faBullseye} className="text-red-600" />}
+                  icon={<i className="fas fa-bullseye text-red-600"></i>}
                   placeholder="e.g., 1200011000"
                 />
                 {validationErrors.targetGrid && (
@@ -500,7 +512,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
         {rangeCapabilities && (
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
             <p className="text-sm text-blue-700">
-              <FontAwesomeIcon icon={faInfoCircle} className="mr-2" />
+              <i className="fas fa-info-circle mr-2"></i>
               <strong>Range Capabilities:</strong> {rangeCapabilities.min}m - {rangeCapabilities.max}m
             </p>
           </div>
@@ -530,7 +542,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
             disabled={!mortarGrid || !effectiveTargetGrid || !selectedSystem || !selectedRound}
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
           >
-            <FontAwesomeIcon icon={faCalculator} className="mr-2" />
+            <i className="fas fa-calculator mr-2"></i>
             Calculate Fire Mission
           </button>
           
@@ -541,7 +553,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
                 disabled={isSaving}
                 className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
               >
-                <FontAwesomeIcon icon={faSave} className="mr-2" />
+                <i className="fas fa-save mr-2"></i>
                 {isSaving ? 'Saving...' : 'Save to History'}
               </button>
               
@@ -549,7 +561,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
                 to="/history"
                 className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 font-medium text-center"
               >
-                <FontAwesomeIcon icon={faHistory} className="mr-2" />
+                <i className="fas fa-history mr-2"></i>
                 View History
               </Link>
             </div>
@@ -560,7 +572,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
         {error && (
           <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
             <div className="flex items-center space-x-2">
-              <FontAwesomeIcon icon={faExclamationTriangle} />
+              <i className="fas fa-exclamation-triangle"></i>
               <p className="font-semibold">Error:</p>
             </div>
             <p>{error}</p>

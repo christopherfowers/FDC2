@@ -1,16 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faHistory, 
-  faSearch, 
-  faTrash, 
-  faDownload, 
-  faUpload,
-  faEye,
-  faEdit,
-  faClock,
-  faCrosshairs
-} from '@fortawesome/free-solid-svg-icons';
+
+
 import { FDCLogo } from './FDCLogo';
 import { FireMissionDetailModal } from './FireMissionDetailModal';
 import { fireMissionHistoryService } from '../services/fireMissionHistoryService';
@@ -103,7 +93,7 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
         } else {
           alert('Failed to import history. Please check the file format.');
         }
-      } catch (error) {
+      } catch {
         alert('Failed to import history. Invalid file format.');
       }
     };
@@ -162,7 +152,7 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
                   htmlFor="import-history"
                   className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors cursor-pointer inline-flex items-center"
                 >
-                  <FontAwesomeIcon icon={faUpload} className="mr-2" />
+                  <i className="fas fa-upload mr-2"></i>
                   Import
                 </label>
               </div>
@@ -172,7 +162,7 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
                 className="px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
                 disabled={missions.length === 0}
               >
-                <FontAwesomeIcon icon={faDownload} className="mr-2" />
+                <i className="fas fa-download mr-2"></i>
                 Export
               </button>
               
@@ -181,7 +171,7 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
                 className="px-3 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                 disabled={missions.length === 0}
               >
-                <FontAwesomeIcon icon={faTrash} className="mr-2" />
+                <i className="fas fa-trash mr-2"></i>
                 Clear All
               </button>
             </div>
@@ -192,10 +182,7 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
       {/* Search */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="relative max-w-md">
-          <FontAwesomeIcon 
-            icon={faSearch} 
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" 
-          />
+          <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
           <input
             type="text"
             placeholder="Search missions by target, system, or command..."
@@ -210,12 +197,12 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         {loading ? (
           <div className="text-center py-8">
-            <FontAwesomeIcon icon={faHistory} className="text-4xl text-gray-400 mb-4" />
+            <i className="fas fa-history text-4xl text-gray-400 mb-4"></i>
             <p className="text-gray-600">Loading history...</p>
           </div>
         ) : filteredMissions.length === 0 ? (
           <div className="text-center py-8">
-            <FontAwesomeIcon icon={faHistory} className="text-4xl text-gray-400 mb-4" />
+            <i className="fas fa-history text-4xl text-gray-400 mb-4"></i>
             <p className="text-gray-600">
               {searchQuery ? 'No missions found matching your search.' : 'No fire missions recorded yet.'}
             </p>
@@ -231,7 +218,7 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-4">
                       <div className="flex-shrink-0">
-                        <FontAwesomeIcon icon={faCrosshairs} className="text-red-500" />
+                        <i className="fas fa-crosshairs text-red-500"></i>
                       </div>
                       
                       <div className="flex-1 min-w-0">
@@ -251,7 +238,7 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
                           </div>
                           
                           <div className="flex items-center text-sm text-gray-500">
-                            <FontAwesomeIcon icon={faClock} className="mr-1" />
+                            <i className="fas fa-clock mr-1"></i>
                             {formatTimestamp(mission.timestamp)}
                           </div>
                         </div>
@@ -271,7 +258,7 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
                       className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors"
                       title="View details"
                     >
-                      <FontAwesomeIcon icon={faEye} />
+                      <i className="fas fa-eye"></i>
                     </button>
                     
                     {onEditMission && (
@@ -283,7 +270,7 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
                         className="p-2 text-green-600 hover:text-green-800 hover:bg-green-100 rounded transition-colors"
                         title="Edit mission"
                       >
-                        <FontAwesomeIcon icon={faEdit} />
+                        <i className="fas fa-edit"></i>
                       </button>
                     )}
                     
@@ -292,7 +279,7 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
                       className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
                       title="Delete mission"
                     >
-                      <FontAwesomeIcon icon={faTrash} />
+                      <i className="fas fa-trash"></i>
                     </button>
                   </div>
                 </div>

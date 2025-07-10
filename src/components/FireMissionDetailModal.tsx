@@ -1,5 +1,5 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faCopy, faDownload, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
+
+
 import type { FireMissionRecord } from '../services/fireMissionHistoryService';
 
 // Helper function to format MGRS coordinates
@@ -112,7 +112,7 @@ Time of Flight: ${mission.fireSolution.timeOfFlight}s`;
                 className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors"
                 title="Edit mission"
               >
-                <FontAwesomeIcon icon={faEdit} />
+                <i className="fas fa-edit"></i>
               </button>
             )}
             <button
@@ -120,14 +120,14 @@ Time of Flight: ${mission.fireSolution.timeOfFlight}s`;
               className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
               title="Copy fire command"
             >
-              <FontAwesomeIcon icon={faCopy} />
+              <i className="fas fa-copy"></i>
             </button>
             <button
               onClick={handleExportMission}
               className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
               title="Export mission"
             >
-              <FontAwesomeIcon icon={faDownload} />
+              <i className="fas fa-download"></i>
             </button>
             {onDelete && (
               <button
@@ -135,7 +135,7 @@ Time of Flight: ${mission.fireSolution.timeOfFlight}s`;
                 className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
                 title="Delete mission"
               >
-                <FontAwesomeIcon icon={faTrash} />
+                <i className="fas fa-trash"></i>
               </button>
             )}
             <button
@@ -143,7 +143,7 @@ Time of Flight: ${mission.fireSolution.timeOfFlight}s`;
               className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
               title="Close"
             >
-              <FontAwesomeIcon icon={faTimes} />
+              <i className="fas fa-times"></i>
             </button>
           </div>
         </div>
@@ -294,14 +294,14 @@ Time of Flight: ${mission.fireSolution.timeOfFlight}s`;
                 onClick={handleCopyCommand}
                 className="flex-1 px-4 py-2 bg-green-800 hover:bg-green-900 text-white rounded-lg font-semibold transition-colors shadow-md"
               >
-                <FontAwesomeIcon icon={faCopy} className="mr-2" />
+                <i className="fas fa-copy mr-2"></i>
                 Copy Fire Command
               </button>
               <button
                 onClick={handleExportMission}
                 className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors shadow-md"
               >
-                <FontAwesomeIcon icon={faDownload} className="mr-2" />
+                <i className="fas fa-download mr-2"></i>
                 Export Mission
               </button>
             </div>

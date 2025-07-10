@@ -1,12 +1,3 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faCog, 
-  faWifi, 
-  faDownload,
-  faDatabase,
-  faSync,
-  faShield
-} from '@fortawesome/free-solid-svg-icons';
 import { AppSettings, PWAStatus } from './PWAComponents';
 import { FDCIcon } from './FDCLogo';
 
@@ -23,7 +14,7 @@ export function SettingsPage() {
               <p className="text-sm text-gray-500 mt-1">Fire Direction Center Configuration</p>
             </div>
           </div>
-          <FontAwesomeIcon icon={faCog} className="text-2xl text-blue-600" />
+          <i className="fas fa-cog text-2xl text-blue-600"></i>
         </div>
         <p className="mt-4 text-gray-600">
           Configure your Fire Direction Center application preferences and data management.
@@ -34,7 +25,7 @@ export function SettingsPage() {
         {/* PWA Status Section */}
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <FontAwesomeIcon icon={faShield} className="text-xl text-green-600" />
+            <i className="fas fa-shield-alt text-xl text-green-600"></i>
             <h2 className="text-xl font-semibold text-gray-900">Application Status</h2>
           </div>
           <div className="text-gray-600 mb-4">
@@ -45,7 +36,7 @@ export function SettingsPage() {
         {/* Data Management Section */}
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <FontAwesomeIcon icon={faDatabase} className="text-xl text-blue-600" />
+            <i className="fas fa-database text-xl text-blue-600"></i>
             <h2 className="text-xl font-semibold text-gray-900">Data Management</h2>
           </div>
           <p className="text-gray-600 mb-6">
@@ -58,12 +49,12 @@ export function SettingsPage() {
         {/* Offline Capabilities Section */}
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <FontAwesomeIcon icon={faWifi} className="text-xl text-purple-600" />
+            <i className="fas fa-wifi text-xl text-purple-600"></i>
             <h2 className="text-xl font-semibold text-gray-900">Offline Capabilities</h2>
           </div>
           <div className="space-y-4">
             <div className="flex items-start space-x-3">
-              <FontAwesomeIcon icon={faDownload} className="text-green-500 mt-1" />
+              <i className="fas fa-download text-green-500 mt-1"></i>
               <div>
                 <h3 className="font-medium text-gray-900">Cached for Offline Use</h3>
                 <p className="text-sm text-gray-600">
@@ -72,7 +63,7 @@ export function SettingsPage() {
               </div>
             </div>
             <div className="flex items-start space-x-3">
-              <FontAwesomeIcon icon={faSync} className="text-blue-500 mt-1" />
+              <i className="fas fa-sync text-blue-500 mt-1"></i>
               <div>
                 <h3 className="font-medium text-gray-900">Automatic Updates</h3>
                 <p className="text-sm text-gray-600">
@@ -81,7 +72,7 @@ export function SettingsPage() {
               </div>
             </div>
             <div className="flex items-start space-x-3">
-              <FontAwesomeIcon icon={faDatabase} className="text-purple-500 mt-1" />
+              <i className="fas fa-database text-purple-500 mt-1"></i>
               <div>
                 <h3 className="font-medium text-gray-900">Local Storage</h3>
                 <p className="text-sm text-gray-600">
@@ -95,7 +86,7 @@ export function SettingsPage() {
         {/* App Information Section */}
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <FontAwesomeIcon icon={faCog} className="text-xl text-gray-600" />
+            <i className="fas fa-cog text-xl text-gray-600"></i>
             <h2 className="text-xl font-semibold text-gray-900">Application Information</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">

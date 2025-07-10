@@ -165,7 +165,7 @@ app.get('/api/ballistic-table/:systemId/:roundId', async (req, res) => {
 });
 
 // Error handling middleware
-app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((error: Error, _req: express.Request, res: express.Response) => {
   console.error('Unhandled error:', error);
   res.status(500).json({ error: 'Internal server error' });
 });

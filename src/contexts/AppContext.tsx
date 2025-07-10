@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { FireDirectionService } from '../services/fireDirectionService';
 import { DataCacheService } from '../services/dataCacheService';
@@ -100,26 +100,27 @@ export function AppProvider({ children }: AppProviderProps) {
     localStorage.removeItem('fdc-calculator-state');
   };
 
-  // Initialize app
-  useEffect(() => {
-    initializeApp();
-  }, []);
+  const loadData = useCallback(async () => {
+    try {
+      const dataCache = DataCacheService.getInstance();
+      const cachedData = await dataCache.loadData();
 
-  // Listen for online/offline status
-  useEffect(() => {
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
+      // Initialize fire direction service with cached data
+      await fdService.initialize(
+        cachedData.systems,
+        cachedData.rounds,
+        cachedData.ballisticData
+      );
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+      setMortarSystems(cachedData.systems);
+      setMortarRounds(cachedData.rounds);
 
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
+    } catch (err) {
+      throw new Error(`Failed to load data: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  }, [fdService]);
 
-  const initializeApp = async () => {
+  const initializeApp = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -145,27 +146,26 @@ export function AppProvider({ children }: AppProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [loadData]);
 
-  const loadData = async () => {
-    try {
-      const dataCache = DataCacheService.getInstance();
-      const cachedData = await dataCache.loadData();
+  // Initialize app
+  useEffect(() => {
+    initializeApp();
+  }, [initializeApp]);
 
-      // Initialize fire direction service with cached data
-      await fdService.initialize(
-        cachedData.systems,
-        cachedData.rounds,
-        cachedData.ballisticData
-      );
+  // Listen for online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
 
-      setMortarSystems(cachedData.systems);
-      setMortarRounds(cachedData.rounds);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
-    } catch (err) {
-      throw new Error(`Failed to load data: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
-  };
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const refreshData = async () => {
     try {

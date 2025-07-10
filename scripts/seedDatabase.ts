@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-// @ts-ignore - csv-parser doesn't have types
 import csv from 'csv-parser';
 import { MortarDatabase } from '../src/services/mortarDatabase.js';
 

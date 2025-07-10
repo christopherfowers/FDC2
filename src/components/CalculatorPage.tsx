@@ -1,5 +1,3 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalculator } from '@fortawesome/free-solid-svg-icons';
 import { FireMissionCalculator } from './FireMissionCalculator';
 import { PWAStatus } from './PWAComponents';
 import { FDCIcon } from './FDCLogo';
@@ -17,7 +15,7 @@ export function CalculatorPage() {
               <p className="text-sm text-gray-500 mt-1">Precision Fire Direction Center</p>
             </div>
           </div>
-          <FontAwesomeIcon icon={faCalculator} className="text-2xl text-blue-600" />
+          <i className="fas fa-calculator text-2xl text-blue-600"></i>
         </div>
         <p className="mt-4 text-gray-600">
           Calculate firing solutions using observer, mortar, and target positions in MGRS coordinates.
