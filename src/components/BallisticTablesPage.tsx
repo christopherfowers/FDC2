@@ -6,6 +6,7 @@ interface BallisticData {
   elevationMils: number;
   timeOfFlightS: number;
   avgDispersionM: number;
+  chargeLevel: number;
 }
 
 interface BallisticTable {
@@ -15,6 +16,9 @@ interface BallisticTable {
   ballisticData: BallisticData[];
 }
 
+type SortField = keyof BallisticData;
+type SortDirection = 'asc' | 'desc';
+
 export function BallisticTablesPage() {
   const { mortarSystems, mortarRounds, fdService } = useApp();
   const [selectedSystemId, setSelectedSystemId] = useState<string>('');
@@ -22,6 +26,10 @@ export function BallisticTablesPage() {
   const [ballisticTable, setBallisticTable] = useState<BallisticTable | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  
+  // Sorting state
+  const [sortField, setSortField] = useState<SortField>('rangeM');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   // Set default selections when data loads
   useEffect(() => {
@@ -44,14 +52,14 @@ export function BallisticTablesPage() {
 
     setLoading(true);
     setError('');
-    
+
     try {
       // Get ballistic data using fdService
       const systemId = parseInt(selectedSystemId);
       const roundId = parseInt(selectedRoundId);
-      
+
       const ballisticData = await fdService.getBallisticData(systemId, roundId);
-      
+
       if (ballisticData.length === 0) {
         setError('No ballistic data found for this combination');
         setBallisticTable(null);
@@ -61,7 +69,7 @@ export function BallisticTablesPage() {
       // Find system and round info
       const system = mortarSystems.find(s => s.id === systemId);
       const round = mortarRounds.find(r => r.id === roundId);
-      
+
       if (!system || !round) {
         setError('Invalid system or round selection');
         setBallisticTable(null);
@@ -77,10 +85,11 @@ export function BallisticTablesPage() {
           rangeM: data.rangeM,
           elevationMils: data.elevationMils,
           timeOfFlightS: data.timeOfFlightS,
-          avgDispersionM: data.avgDispersionM
+          avgDispersionM: data.avgDispersionM,
+          chargeLevel: data.chargeLevel
         }))
       };
-      
+
       setBallisticTable(table);
     } catch (error) {
       setError('Error loading ballistic table');
@@ -101,24 +110,40 @@ export function BallisticTablesPage() {
     setBallisticTable(null);
   };
 
-  const formatCharge = (data: BallisticData[], index: number) => {
-    // Try to group by charge levels based on range patterns
-    // This is a simplified approach - in a real system you'd have charge data
-    if (index === 0) return '0';
-    
-    const currentRange = data[index].rangeM;
-    const prevRange = data[index - 1].rangeM;
-    
-    // If there's a significant jump in range, it might be a new charge
-    if (currentRange - prevRange > 500) {
-      const chargeEstimate = Math.floor(index / 10); // Rough estimate
-      return chargeEstimate.toString();
+  // Sorting functions
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New field, default to ascending
+      setSortField(field);
+      setSortDirection('asc');
     }
-    
-    return '0'; // Default charge
   };
 
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <i className="fas fa-sort text-gray-400 ml-1"></i>;
+    }
+    return sortDirection === 'asc' 
+      ? <i className="fas fa-sort-up text-blue-500 ml-1"></i>
+      : <i className="fas fa-sort-down text-blue-500 ml-1"></i>;
+  };
 
+  const sortedData = ballisticTable ? {
+    ...ballisticTable,
+    ballisticData: [...ballisticTable.ballisticData].sort((a, b) => {
+      const aVal = a[sortField];
+      const bVal = b[sortField];
+      
+      if (sortDirection === 'asc') {
+        return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+      } else {
+        return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+      }
+    })
+  } : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -131,7 +156,7 @@ export function BallisticTablesPage() {
         {/* Selection Controls */}
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Platform and Round</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
               <label htmlFor="system" className="block text-sm font-medium text-gray-700 mb-2">
@@ -197,14 +222,14 @@ export function BallisticTablesPage() {
         </div>
 
         {/* Ballistic Table Display */}
-        {ballisticTable && (
+        {sortedData && (
           <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
             <div className="px-6 py-4 border-b bg-gray-50">
               <h3 className="text-lg font-semibold text-gray-900">
-                {ballisticTable.mortarSystem} - {ballisticTable.mortarRound}
+                {sortedData.mortarSystem} - {sortedData.mortarRound}
               </h3>
               <p className="text-sm text-gray-600">
-                Round Type: {ballisticTable.roundType} • {ballisticTable.ballisticData.length} data points
+                Round Type: {sortedData.roundType} • {sortedData.ballisticData.length} data points
               </p>
             </div>
 
@@ -212,25 +237,55 @@ export function BallisticTablesPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Range (m)
+                    <th 
+                      onClick={() => handleSort('rangeM')} 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    >
+                      <div className="flex items-center">
+                        Range (m)
+                        {getSortIcon('rangeM')}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Elevation (mils)
+                    <th 
+                      onClick={() => handleSort('elevationMils')} 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    >
+                      <div className="flex items-center">
+                        Elevation (mils)
+                        {getSortIcon('elevationMils')}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Time of Flight (s)
+                    <th 
+                      onClick={() => handleSort('timeOfFlightS')} 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    >
+                      <div className="flex items-center">
+                        Time of Flight (s)
+                        {getSortIcon('timeOfFlightS')}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Dispersion (m)
+                    <th 
+                      onClick={() => handleSort('avgDispersionM')} 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    >
+                      <div className="flex items-center">
+                        Dispersion (m)
+                        {getSortIcon('avgDispersionM')}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Est. Charge
+                    <th 
+                      onClick={() => handleSort('chargeLevel')} 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    >
+                      <div className="flex items-center">
+                        Charge
+                        {getSortIcon('chargeLevel')}
+                      </div>
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {ballisticTable.ballisticData.map((data, index) => (
+                  {sortedData?.ballisticData.map((data, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {data.rangeM.toLocaleString()}
@@ -244,8 +299,8 @@ export function BallisticTablesPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {data.avgDispersionM}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCharge(ballisticTable.ballisticData, index)}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {data.chargeLevel}
                       </td>
                     </tr>
                   ))}
@@ -256,7 +311,7 @@ export function BallisticTablesPage() {
             <div className="px-6 py-4 bg-gray-50 border-t">
               <div className="text-xs text-gray-500 space-y-1">
                 <p><strong>Note:</strong> All ballistic data is for Arma Reforger gameplay only.</p>
-                <p><strong>Charges:</strong> Charge estimates are calculated based on range patterns and may not reflect actual charge levels.</p>
+                <p><strong>Charges:</strong> Charge levels are extracted from the original ballistic data.</p>
                 <p><strong>Gaming:</strong> This tool is designed specifically for Arma Reforger mortar calculations and gameplay enhancement.</p>
               </div>
             </div>
@@ -264,7 +319,7 @@ export function BallisticTablesPage() {
         )}
 
         {/* Empty State */}
-        {!ballisticTable && !loading && !error && (
+        {!sortedData && !loading && !error && (
           <div className="text-center py-12">
             <i className="fas fa-table text-6xl text-gray-300 mb-6"></i>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Select Platform and Round</h3>

@@ -24,6 +24,11 @@ export interface FireMissionRecord {
   isUsingMortarAsObserver?: boolean;
 }
 
+// Interface for stored records (with timestamp as string)
+interface StoredFireMissionRecord extends Omit<FireMissionRecord, 'timestamp'> {
+  timestamp: string;
+}
+
 export interface FireMissionSummary {
   id: string;
   timestamp: Date;
@@ -44,7 +49,7 @@ class FireMissionHistoryService {
   saveMission(mission: Omit<FireMissionRecord, 'id' | 'timestamp'>): string {
     const id = this.generateId();
     const timestamp = new Date();
-    
+
     const record: FireMissionRecord = {
       id,
       timestamp,
@@ -70,10 +75,10 @@ class FireMissionHistoryService {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (!stored) return [];
-      
+
       const parsed = JSON.parse(stored);
       // Convert timestamp strings back to Date objects
-      return parsed.map((record: any) => ({
+      return parsed.map((record: StoredFireMissionRecord) => ({
         ...record,
         timestamp: new Date(record.timestamp)
       }));
@@ -112,9 +117,9 @@ class FireMissionHistoryService {
   deleteMission(id: string): boolean {
     const history = this.getHistory();
     const index = history.findIndex(record => record.id === id);
-    
+
     if (index === -1) return false;
-    
+
     history.splice(index, 1);
     this.saveHistory(history);
     return true;
@@ -139,7 +144,7 @@ class FireMissionHistoryService {
    */
   searchHistory(query: string): FireMissionSummary[] {
     const lowerQuery = query.toLowerCase();
-    return this.getHistorySummary().filter(mission => 
+    return this.getHistorySummary().filter(mission =>
       mission.targetGrid.toLowerCase().includes(lowerQuery) ||
       mission.fireCommand.toLowerCase().includes(lowerQuery) ||
       mission.system.toLowerCase().includes(lowerQuery)
@@ -160,20 +165,20 @@ class FireMissionHistoryService {
     try {
       const imported = JSON.parse(jsonData);
       if (!Array.isArray(imported)) throw new Error('Invalid format');
-      
+
       // Validate structure
       for (const record of imported) {
         if (!record.id || !record.timestamp || !record.fireCommand) {
           throw new Error('Invalid record structure');
         }
       }
-      
+
       // Convert timestamps and save
-      const history = imported.map((record: any) => ({
+      const history = imported.map((record: StoredFireMissionRecord) => ({
         ...record,
         timestamp: new Date(record.timestamp)
       }));
-      
+
       this.saveHistory(history);
       return true;
     } catch (error) {

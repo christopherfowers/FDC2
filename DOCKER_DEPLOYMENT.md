@@ -66,8 +66,8 @@ docker-compose -f docker-compose.prod.yml up --build -d
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
+| Variable   | Default      | Description                                             |
+| ---------- | ------------ | ------------------------------------------------------- |
 | `NODE_ENV` | `production` | Build environment (always production for static builds) |
 
 ## Health Checks
@@ -183,13 +183,13 @@ docker exec fdc2-container nginx -t
 
 ## Development vs Production
 
-| Aspect | Development | Production |
-|--------|-------------|------------|
+| Aspect   | Development                 | Production                   |
+| -------- | --------------------------- | ---------------------------- |
 | Frontend | Vite dev server (port 5173) | Static files served by Nginx |
-| Backend | None (static CSV data) | None (static CSV data) |
-| API URL | Not applicable | Not applicable |
-| Build | Source files | Optimized static build |
-| Size | ~200MB | ~50MB |
+| Backend  | None (static CSV data)      | None (static CSV data)       |
+| API URL  | Not applicable              | Not applicable               |
+| Build    | Source files                | Optimized static build       |
+| Size     | ~200MB                      | ~50MB                        |
 
 ## File Structure in Container
 

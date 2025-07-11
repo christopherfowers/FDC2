@@ -12,7 +12,7 @@ ENVIRONMENT=${1:-production}
 PORT=${2:-80}
 
 if [ "$ENVIRONMENT" = "development" ]; then
-    PORT=3001
+    PORT=3002
     COMPOSE_FILE="docker-compose.yml"
     echo "🧑‍💻 Deploying in DEVELOPMENT mode"
 else
@@ -34,13 +34,12 @@ sleep 10
 
 # Health check
 echo "🔍 Running health check..."
-if curl -f "http://localhost:$PORT/health" > /dev/null 2>&1; then
+if curl -f "http://localhost:$PORT/" > /dev/null 2>&1; then
     echo "✅ Application is healthy!"
     echo ""
     echo "🎯 Fire Direction Calculator is now running!"
     echo "🌐 Access the application at: http://localhost:$PORT"
-    echo "📊 Health check: http://localhost:$PORT/health"
-    echo "🔧 Static CSV data available at: /data/*"
+    echo " Static CSV data available at: http://localhost:$PORT/data/"
     echo ""
     echo "📋 Useful commands:"
     echo "   View logs: docker-compose -f $COMPOSE_FILE logs -f"

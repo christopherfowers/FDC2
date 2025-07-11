@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,24 +13,28 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
+
         .container {
             background: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .section {
             margin-bottom: 30px;
             padding: 15px;
             border: 1px solid #ddd;
             border-radius: 5px;
         }
+
         .section h3 {
             margin-top: 0;
             color: #333;
             border-bottom: 2px solid #007acc;
             padding-bottom: 5px;
         }
+
         .results {
             background: #f8f9fa;
             padding: 10px;
@@ -39,16 +44,19 @@
             max-height: 300px;
             overflow-y: auto;
         }
+
         .error {
             background: #fff5f5;
             border: 1px solid #fed7d7;
             color: #c53030;
         }
+
         .success {
             background: #f0fff4;
             border: 1px solid #9ae6b4;
             color: #2f855a;
         }
+
         button {
             background: #007acc;
             color: white;
@@ -58,26 +66,31 @@
             cursor: pointer;
             font-size: 16px;
         }
+
         button:hover {
             background: #005999;
         }
+
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
         }
+
         .loading {
             color: #666;
             font-style: italic;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>CSV Data Service Browser Test</h1>
-        <p>This page tests the client-side CSV data service to ensure it properly loads, parses, and processes CSV files into the expected data structures.</p>
-        
+        <p>This page tests the client-side CSV data service to ensure it properly loads, parses, and processes CSV files
+            into the expected data structures.</p>
+
         <button id="testBtn" onclick="runTest()">Run CSV Service Test</button>
-        
+
         <div id="status" class="section" style="display: none;">
             <h3>Test Status</h3>
             <div id="statusContent" class="results"></div>
@@ -107,11 +120,11 @@
     <script type="module">
         import { csvDataService } from './src/services/csvDataService.js';
 
-        window.runTest = async function() {
+        window.runTest = async function () {
             const testBtn = document.getElementById('testBtn');
             const status = document.getElementById('status');
             const statusContent = document.getElementById('statusContent');
-            
+
             // Show status section and disable button
             status.style.display = 'block';
             testBtn.disabled = true;
@@ -121,32 +134,32 @@
             try {
                 // Test the CSV data service
                 statusContent.textContent += 'Initializing CSV data service...\n';
-                
+
                 await csvDataService.initialize();
                 statusContent.textContent += '✅ CSV data service initialized successfully\n';
-                
+
                 // Get all data
                 statusContent.textContent += 'Fetching mortar systems...\n';
                 const mortarSystems = await csvDataService.getAllMortarSystems();
                 statusContent.textContent += `✅ Found ${mortarSystems.length} mortar systems\n`;
-                
+
                 statusContent.textContent += 'Fetching mortar rounds...\n';
                 const mortarRounds = await csvDataService.getAllMortarRounds();
                 statusContent.textContent += `✅ Found ${mortarRounds.length} mortar rounds\n`;
-                
+
                 statusContent.textContent += 'Fetching ballistic data...\n';
                 const ballisticData = await csvDataService.getAllMortarRoundData();
                 statusContent.textContent += `✅ Found ${ballisticData.length} ballistic data entries\n`;
-                
+
                 // Display results
                 showMortarSystems(mortarSystems);
                 showMortarRounds(mortarRounds);
                 showBallisticData(ballisticData);
                 showSummary(mortarSystems, mortarRounds, ballisticData);
-                
+
                 statusContent.className = 'results success';
                 statusContent.textContent += '\n🎉 All tests completed successfully!';
-                
+
             } catch (error) {
                 statusContent.className = 'results error';
                 statusContent.textContent += `\n❌ Error: ${error.message}\n`;
@@ -160,7 +173,7 @@
         function showMortarSystems(systems) {
             const section = document.getElementById('mortarSystems');
             const content = document.getElementById('mortarSystemsContent');
-            
+
             section.style.display = 'block';
             content.textContent = JSON.stringify(systems, null, 2);
         }
@@ -168,7 +181,7 @@
         function showMortarRounds(rounds) {
             const section = document.getElementById('mortarRounds');
             const content = document.getElementById('mortarRoundsContent');
-            
+
             section.style.display = 'block';
             content.textContent = JSON.stringify(rounds, null, 2);
         }
@@ -176,7 +189,7 @@
         function showBallisticData(data) {
             const section = document.getElementById('ballistics');
             const content = document.getElementById('ballisticsContent');
-            
+
             section.style.display = 'block';
             // Show first 10 entries to avoid overwhelming the display
             const sample = data.slice(0, 10);
@@ -187,20 +200,20 @@
         function showSummary(systems, rounds, data) {
             const section = document.getElementById('summary');
             const content = document.getElementById('summaryContent');
-            
+
             section.style.display = 'block';
-            
+
             // Analyze the data
             const systemsByDiameter = systems.reduce((acc, sys) => {
                 acc[sys.diameter] = (acc[sys.diameter] || 0) + 1;
                 return acc;
             }, {});
-            
+
             const roundsByType = rounds.reduce((acc, round) => {
                 acc[round.name] = (acc[round.name] || 0) + 1;
                 return acc;
             }, {});
-            
+
             const chargeRanges = data.reduce((acc, entry) => {
                 const key = `Charge ${entry.charge}`;
                 if (!acc[key]) {
@@ -211,7 +224,7 @@
                 acc[key].count++;
                 return acc;
             }, {});
-            
+
             const summary = {
                 totalSystems: systems.length,
                 totalRounds: rounds.length,
@@ -223,9 +236,10 @@
                 sampleRound: rounds[0],
                 sampleBallisticEntry: data[0]
             };
-            
+
             content.textContent = JSON.stringify(summary, null, 2);
         }
     </script>
 </body>
+
 </html>

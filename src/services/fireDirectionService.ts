@@ -81,16 +81,27 @@ export class FireDirectionService {
   }
 
   /**
-   * Determine optimal charge level based on range
-   * Based on standard M252 81mm mortar charge tables
+   * Determine optimal charge level based on range using actual ballistic data
    */
-  private getChargeLevel(rangeM: number): string {
-    // Based on M252 81mm mortar standard charge ranges
-    if (rangeM <= 400) return "Charge 0";
-    if (rangeM <= 900) return "Charge 1";
-    if (rangeM <= 1600) return "Charge 2";
-    if (rangeM <= 2300) return "Charge 3";
-    return "Charge 4";
+  private getChargeLevel(mortarSystemId: number, mortarRoundId: number, rangeM: number): string {
+    const data = this.getBallisticData(mortarSystemId, mortarRoundId);
+    
+    if (data.length === 0) {
+      return "Charge 0"; // Fallback
+    }
+
+    // Find exact match or closest range
+    const exactMatch = data.find(d => d.rangeM === rangeM);
+    if (exactMatch) {
+      return `Charge ${exactMatch.chargeLevel}`;
+    }
+
+    // Find the closest data point
+    const closest = data.reduce((prev, curr) => 
+      Math.abs(curr.rangeM - rangeM) < Math.abs(prev.rangeM - rangeM) ? curr : prev
+    );
+
+    return `Charge ${closest.chargeLevel}`;
   }
 
   /**
@@ -210,7 +221,7 @@ export class FireDirectionService {
       azimuthMils: fireMission.azimuthMils,
       backAzimuthMils: fireMission.backAzimuthMils,
       elevationMils: solution.elevationMils,
-      chargeLevel: this.getChargeLevel(Math.round(fireMission.distanceMeters)),
+      chargeLevel: this.getChargeLevel(mortarSystemId, mortarRoundId, Math.round(fireMission.distanceMeters)),
       timeOfFlightS: solution.timeOfFlightS,
       avgDispersionM: solution.avgDispersionM,
       interpolated: solution.interpolated,

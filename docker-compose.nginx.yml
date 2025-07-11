@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  fdc2-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: fdc2-nginx
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 64M # Much lighter than Node.js!
+        reservations:
+          memory: 16M
+    networks:
+      - fdc2-network
+
+networks:
+  fdc2-network:
+    driver: bridge

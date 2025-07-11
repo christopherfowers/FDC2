@@ -22,6 +22,7 @@ export interface MortarRoundData {
   id: number;
   mortarSystemId: number;   // FK → MortarSystem.id
   mortarRoundId: number;    // FK → MortarRound.id
+  chargeLevel: number;      // charge level (0, 1, 2, etc.)
   avgDispersionM: number;   // mean radial error at that range
   rangeM: number;           // horizontal distance
   elevationMils: number;    // tube quadrant elevation

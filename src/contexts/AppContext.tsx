@@ -21,22 +21,22 @@ interface CalculatorState {
 interface AppContextType {
   // Services
   fdService: FireDirectionService;
-  
+
   // Data state
   mortarSystems: MortarSystem[];
   mortarRounds: MortarRound[];
   isLoading: boolean;
   error: string | null;
-  
+
   // PWA state
   isOffline: boolean;
   hasUpdate: boolean;
-  
+
   // Calculator state
   calculatorState: CalculatorState;
   setCalculatorState: (state: Partial<CalculatorState>) => void;
   resetCalculatorState: () => void;
-  
+
   // Actions
   refreshData: () => Promise<void>;
   updateApp: () => Promise<void>;
@@ -104,7 +104,7 @@ export function AppProvider({ children }: AppProviderProps) {
     try {
       // Initialize CSV data service
       await csvDataService.initialize();
-      
+
       // Get data from CSV service
       const systems = await csvDataService.getAllMortarSystems();
       const rounds = await csvDataService.getAllMortarRounds();
@@ -175,7 +175,7 @@ export function AppProvider({ children }: AppProviderProps) {
 
       // Force refresh CSV data
       await csvDataService.initialize(true); // Force refresh
-      
+
       // Get fresh data from CSV service
       const systems = await csvDataService.getAllMortarSystems();
       const rounds = await csvDataService.getAllMortarRounds();
@@ -206,7 +206,7 @@ export function AppProvider({ children }: AppProviderProps) {
   const clearCache = async () => {
     try {
       const swManager = ServiceWorkerManager.getInstance();
-      
+
       await Promise.all([
         swManager.clearCaches(),
         csvDataService.clearCache()

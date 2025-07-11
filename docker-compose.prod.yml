@@ -4,13 +4,13 @@ services:
   fdc2-app:
     build: .
     ports:
-      - "80:80"  # Map Nginx port 80 to host port 80
+      - "80:80" # Map Nginx port 80 to host port 80
     environment:
       - NGINX_HOST=localhost
       - NGINX_PORT=80
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -20,7 +20,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M  # Reduced since we're only serving static files
+          memory: 256M # Reduced since we're only serving static files
         reservations:
           memory: 64M
 

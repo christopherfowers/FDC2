@@ -5,13 +5,13 @@ services:
     image: christopherfowers/fdc2:latest
     container_name: fdc2-container
     ports:
-      - "3002:80"  # Changed to port 80 for Nginx
+      - "3002:80" # Changed to port 80 for Nginx
     environment:
       - NGINX_HOST=localhost
       - NGINX_PORT=80
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/" ]
       interval: 30s
       timeout: 10s
       retries: 3

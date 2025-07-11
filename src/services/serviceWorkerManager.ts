@@ -82,7 +82,7 @@ export class ServiceWorkerManager {
 
     return new Promise((resolve, reject) => {
       const messageChannel = new MessageChannel();
-      
+
       messageChannel.port1.onmessage = (event) => {
         if (event.data.success) {
           resolve();
@@ -121,7 +121,7 @@ export class ServiceWorkerManager {
    */
   onStateChange(callback: (state: ServiceWorkerState) => void): () => void {
     this.callbacks.push(callback);
-    
+
     // Return unsubscribe function
     return () => {
       const index = this.callbacks.indexOf(callback);

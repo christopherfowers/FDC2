@@ -10,7 +10,7 @@ if "%ENVIRONMENT%"=="" set ENVIRONMENT=production
 
 set PORT=%2
 if "%ENVIRONMENT%"=="development" (
-    if "%PORT%"=="" set PORT=3001
+    if "%PORT%"=="" set PORT=3002
     set COMPOSE_FILE=docker-compose.yml
     echo 🧑‍💻 Deploying in DEVELOPMENT mode
 ) else (
@@ -33,14 +33,13 @@ timeout /t 10 /nobreak >nul
 
 REM Health check
 echo 🔍 Running health check...
-curl -f "http://localhost:%PORT%/health" >nul 2>&1
+curl -f "http://localhost:%PORT%/" >nul 2>&1
 if %errorlevel%==0 (
     echo ✅ Application is healthy!
     echo.
     echo 🎯 Fire Direction Calculator is now running!
     echo 🌐 Access the application at: http://localhost:%PORT%
-    echo 📊 Health check: http://localhost:%PORT%/health
-    echo 🔧 Static CSV data available at: /data/*
+    echo  Static CSV data available at: http://localhost:%PORT%/data/
     echo.
     echo 📋 Useful commands:
     echo    View logs: docker-compose -f %COMPOSE_FILE% logs -f

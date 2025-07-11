@@ -16,7 +16,7 @@ if not exist "docker-compose.yml" (
 echo 🐳 Ready to run: docker-compose up --build
 echo 📊 Application will serve CSV data as static assets
 echo.
-echo 🌐 FDC2 Static Site will be available at: http://localhost:3000
+echo 🌐 FDC2 Static Site will be available at: http://localhost:3002
 echo.
 echo To start FDC2:
 echo   docker-compose up --build
