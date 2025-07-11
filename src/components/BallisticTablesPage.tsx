@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { FDCLogo } from './FDCLogo';
 
 interface MortarSystem {
   id: number;
@@ -133,22 +132,12 @@ export function BallisticTablesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <FDCLogo className="h-8 w-8 text-red-600" />
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">Ballistic Data Tables</h1>
-                <p className="text-sm text-gray-600">Lookup firing data by mortar system and round type</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Ballistic Data Tables</h1>
+          <p className="text-gray-600 mt-1">Lookup firing data by mortar system and round type</p>
+        </div>
         {/* Selection Controls */}
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Platform and Round</h2>

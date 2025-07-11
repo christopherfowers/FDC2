@@ -1,7 +1,4 @@
 import { useState, useEffect } from 'react';
-
-
-import { FDCLogo } from './FDCLogo';
 import { FireMissionDetailModal } from './FireMissionDetailModal';
 import { fireMissionHistoryService } from '../services/fireMissionHistoryService';
 import type { FireMissionRecord, FireMissionSummary } from '../services/fireMissionHistoryService';
@@ -126,61 +123,55 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <FDCLogo className="h-8 w-8 text-red-600" />
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">Fire Mission History</h1>
-                <p className="text-sm text-gray-600">{missions.length} missions recorded</p>
-              </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Fire Mission History</h1>
+            <p className="text-gray-600 mt-1">{missions.length} missions recorded</p>
+          </div>
+          
+          {/* Actions */}
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleImportHistory}
+                className="hidden"
+                id="import-history"
+              />
+              <label
+                htmlFor="import-history"
+                className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors cursor-pointer inline-flex items-center"
+              >
+                <i className="fas fa-upload mr-2"></i>
+                Import
+              </label>
             </div>
             
-            {/* Actions */}
-            <div className="flex items-center space-x-2">
-              <div className="relative">
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleImportHistory}
-                  className="hidden"
-                  id="import-history"
-                />
-                <label
-                  htmlFor="import-history"
-                  className="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors cursor-pointer inline-flex items-center"
-                >
-                  <i className="fas fa-upload mr-2"></i>
-                  Import
-                </label>
-              </div>
-              
-              <button
-                onClick={handleExportHistory}
-                className="px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                disabled={missions.length === 0}
-              >
-                <i className="fas fa-download mr-2"></i>
-                Export
-              </button>
-              
-              <button
-                onClick={handleClearHistory}
-                className="px-3 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                disabled={missions.length === 0}
-              >
-                <i className="fas fa-trash mr-2"></i>
-                Clear All
-              </button>
-            </div>
+            <button
+              onClick={handleExportHistory}
+              className="px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+              disabled={missions.length === 0}
+            >
+              <i className="fas fa-download mr-2"></i>
+              Export
+            </button>
+            
+            <button
+              onClick={handleClearHistory}
+              className="px-3 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+              disabled={missions.length === 0}
+            >
+              <i className="fas fa-trash mr-2"></i>
+              Clear All
+            </button>
           </div>
         </div>
-      </div>
 
       {/* Search */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="mb-6">
         <div className="relative max-w-md">
           <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
           <input
@@ -194,7 +185,6 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
       </div>
 
       {/* Mission List */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         {loading ? (
           <div className="text-center py-8">
             <i className="fas fa-history text-4xl text-gray-400 mb-4"></i>
@@ -319,7 +309,6 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
             ))}
           </div>
         )}
-      </div>
 
       {/* Detail Modal */}
       <FireMissionDetailModal
@@ -329,6 +318,7 @@ export function HistoryPage({ onEditMission }: HistoryPageProps) {
         onDelete={handleDeleteMission}
         onEdit={handleEditMission}
       />
+      </div>
     </div>
   );
 }
