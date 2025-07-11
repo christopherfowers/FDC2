@@ -29,6 +29,9 @@ RUN npm prune --production && \
     rm -rf node_modules/.cache && \
     npm install tsx --save-prod
 
+# Verify CSV data files are present after cleanup
+RUN ls -la data/ || echo "❌ Data directory missing after cleanup"
+
 # Ensure dist directory and server files are accessible
 RUN ls -la && ls -la dist/ && ls -la src/
 
