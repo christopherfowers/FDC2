@@ -305,6 +305,191 @@ Time of Flight: ${result.timeOfFlightS}s`;
         </div>
       )}
 
+      {/* Firing Solution - Primary Focus */}
+      <div className="mb-8 bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <i className="fas fa-crosshairs mr-2 text-green-600"></i>
+          Firing Solution
+        </h2>
+        
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-green-50 p-4 rounded-lg text-center">
+              <i className="fas fa-ruler-combined text-2xl text-green-600 mb-2"></i>
+              <label className="block text-sm font-medium text-gray-500">Distance</label>
+              <p className="text-2xl font-bold text-green-700">{Math.round(result.targetDistance)}m</p>
+            </div>
+            <div className="bg-blue-50 p-4 rounded-lg text-center">
+              <i className="fas fa-compass text-2xl text-blue-600 mb-2"></i>
+              <label className="block text-sm font-medium text-gray-500">Azimuth</label>
+              <p className="text-2xl font-bold text-blue-700">{result.azimuthMils}</p>
+              <p className="text-sm text-gray-500">mils</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-orange-50 p-4 rounded-lg text-center">
+              <label className="block text-sm font-medium text-gray-500">Elevation</label>
+              <p className="text-2xl font-bold text-orange-700">{result.elevationMils}</p>
+              <p className="text-sm text-gray-500">mils</p>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-lg text-center">
+              <label className="block text-sm font-medium text-gray-500">Charge</label>
+              <p className="text-2xl font-bold text-purple-700">{result.chargeLevel}</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gray-50 p-4 rounded-lg text-center">
+              <i className="fas fa-clock text-2xl text-gray-600 mb-2"></i>
+              <label className="block text-sm font-medium text-gray-500">Time of Flight</label>
+              <p className="text-xl font-bold text-gray-700">{result.timeOfFlightS}s</p>
+            </div>
+            <div className="bg-red-50 p-4 rounded-lg text-center">
+              <label className="block text-sm font-medium text-gray-500">Dispersion</label>
+              <p className="text-xl font-bold text-red-700">{result.avgDispersionM}m</p>
+            </div>
+          </div>
+          
+          {result.interpolated && (
+            <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+              <p className="text-yellow-800 font-medium">
+                ⚠️ Solution is interpolated between available firing table data
+              </p>
+            </div>
+          )}
+          
+          {result.reasoning && (
+            <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+              <p className="text-blue-800 font-medium">
+                <i className="fas fa-lightbulb mr-2"></i>
+                {result.reasoning}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Observer Adjustments - Secondary Priority */}
+      <div className="mb-8 bg-white rounded-lg shadow-md p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">
+            <i className="fas fa-edit mr-2 text-orange-600"></i>
+            Observer Adjustments
+          </h2>
+          <button
+            onClick={() => setShowAdjustments(!showAdjustments)}
+            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+          >
+            {showAdjustments ? 'Hide' : 'Show'} Adjustments
+          </button>
+        </div>
+
+        {/* Observer Point of View Info */}
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-800 font-medium">
+            <i className="fas fa-eye mr-2"></i>
+            Adjustments Point of View: {result.isUsingMortarAsObserver ? 'Mortar Team' : 'Forward Observer'}
+          </p>
+          <p className="text-xs text-blue-600 mt-1">
+            {result.isUsingMortarAsObserver 
+              ? `Adjustments relative to mortar team at ${result.mortarGrid}`
+              : `Adjustments relative to FO at ${result.observerGrid}`
+            }
+          </p>
+          {result.calculatedFromFO && (
+            <p className="text-xs text-green-600 mt-1">
+              ✓ Original target calculated from FO azimuth ({result.foAzimuthMils} mils) and distance ({result.foDistanceMeters}m)
+            </p>
+          )}
+        </div>
+        
+        {showAdjustments && (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 mb-4">
+              Make adjustments and recalculate the firing solution. 
+              Adjustments are relative to the {result.isUsingMortarAsObserver ? 'mortar team\'s' : 'observer\'s'} line of sight to target.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Range Adjustment (meters)
+                </label>
+                <input
+                  type="number"
+                  value={rangeAdjustment || ''}
+                  onChange={(e) => setRangeAdjustment(Number(e.target.value) || 0)}
+                  placeholder="e.g., 100 (add), -50 (drop)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">Standard: "Add 100" or "Drop 50"</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Direction Adjustment (mils)
+                </label>
+                <input
+                  type="number"
+                  value={directionAdjustment || ''}
+                  onChange={(e) => setDirectionAdjustment(Number(e.target.value) || 0)}
+                  placeholder="e.g., 50 (right), -30 (left)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">Standard: "Right 50" or "Left 30"</p>
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={applyAdjustments}
+                disabled={isCalculating || (rangeAdjustment === 0 && directionAdjustment === 0)}
+                className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white py-3 px-6 rounded-lg font-semibold"
+              >
+                {isCalculating ? 'Calculating...' : 'Apply Adjustments & Recalculate'}
+              </button>
+                
+              <button
+                onClick={() => {
+                  setRangeAdjustment(0);
+                  setDirectionAdjustment(0);
+                }}
+                className="bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-lg font-medium"
+              >
+                Clear
+              </button>
+            </div>
+            
+            {(rangeAdjustment !== 0 || directionAdjustment !== 0) && (
+              <div className="mt-3 p-3 bg-orange-100 rounded-lg">
+                <p className="text-sm text-orange-800">
+                  <strong>Pending Adjustments:</strong>
+                  {rangeAdjustment !== 0 && ` Range: ${rangeAdjustment > 0 ? 'ADD' : 'DROP'} ${Math.abs(rangeAdjustment)}m`}
+                  {directionAdjustment !== 0 && ` Direction: ${directionAdjustment > 0 ? 'RIGHT' : 'LEFT'} ${Math.abs(directionAdjustment)} mils`}
+                </p>
+              </div>
+            )}
+            
+            {result.adjustmentApplied && (
+              <div className="mt-3 p-3 bg-green-100 rounded-lg">
+                <p className="text-sm text-green-800">
+                  <i className="fas fa-check mr-2"></i>
+                  <strong>Applied Adjustments:</strong>
+                  {result.adjustmentApplied.range !== 0 && ` Range: ${result.adjustmentApplied.range > 0 ? 'ADD' : 'DROP'} ${Math.abs(result.adjustmentApplied.range)}m`}
+                  {result.adjustmentApplied.direction !== 0 && ` Direction: ${result.adjustmentApplied.direction > 0 ? 'RIGHT' : 'LEFT'} ${Math.abs(result.adjustmentApplied.direction)} mils`}
+                </p>
+                {result.originalTargetGrid && (
+                  <p className="text-xs text-green-600 mt-1">
+                    Original target: {result.originalTargetGrid} → Adjusted target: {result.targetGrid}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Mission Overview */}
         <div className="space-y-6">
@@ -384,210 +569,58 @@ Time of Flight: ${result.timeOfFlightS}s`;
           )}
         </div>
 
-        {/* Firing Solution */}
+        {/* Mission Overview */}
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              <i className="fas fa-crosshairs mr-2 text-green-600"></i>
-              Firing Solution
+              <i className="fas fa-map-marker-alt mr-2 text-blue-600"></i>
+              Mission Overview
             </h2>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-green-50 p-4 rounded-lg text-center">
-                  <i className="fas fa-ruler-combined text-2xl text-green-600 mb-2"></i>
-                  <label className="block text-sm font-medium text-gray-500">Distance</label>
-                  <p className="text-2xl font-bold text-green-700">{Math.round(result.targetDistance)}m</p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Mortar Position</label>
+                  <p className="text-lg font-mono">{result.mortarGrid}</p>
                 </div>
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
-                  <i className="fas fa-compass text-2xl text-blue-600 mb-2"></i>
-                  <label className="block text-sm font-medium text-gray-500">Azimuth</label>
-                  <p className="text-2xl font-bold text-blue-700">{result.azimuthMils}</p>
-                  <p className="text-sm text-gray-500">mils</p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Target Position</label>
+                  <p className="text-lg font-mono">{result.targetGrid}</p>
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-orange-50 p-4 rounded-lg text-center">
-                  <label className="block text-sm font-medium text-gray-500">Elevation</label>
-                  <p className="text-2xl font-bold text-orange-700">{result.elevationMils}</p>
-                  <p className="text-sm text-gray-500">mils</p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Mortar System</label>
+                  <p className="text-lg">{result.mortarSystemName || 'Unknown System'}</p>
                 </div>
-                <div className="bg-purple-50 p-4 rounded-lg text-center">
-                  <label className="block text-sm font-medium text-gray-500">Charge</label>
-                  <p className="text-2xl font-bold text-purple-700">{result.chargeLevel}</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg text-center">
-                  <i className="fas fa-clock text-2xl text-gray-600 mb-2"></i>
-                  <label className="block text-sm font-medium text-gray-500">Time of Flight</label>
-                  <p className="text-xl font-bold text-gray-700">{result.timeOfFlightS}s</p>
-                </div>
-                <div className="bg-red-50 p-4 rounded-lg text-center">
-                  <label className="block text-sm font-medium text-gray-500">Dispersion</label>
-                  <p className="text-xl font-bold text-red-700">{result.avgDispersionM}m</p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Round Type</label>
+                  <p className="text-lg">{result.roundName || 'Unknown Round'}</p>
                 </div>
               </div>
               
-              {result.interpolated && (
-                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
-                  <p className="text-yellow-800 font-medium">
-                    ⚠️ Solution is interpolated between available firing table data
-                  </p>
+              {result.observerGrid && !result.isUsingMortarAsObserver && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Observer Position</label>
+                  <p className="text-lg font-mono">{result.observerGrid}</p>
                 </div>
               )}
               
-              {result.reasoning && (
-                <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
-                  <p className="text-blue-800 font-medium">
-                    <i className="fas fa-lightbulb mr-2"></i>
-                    {result.reasoning}
+              {result.isUsingMortarAsObserver && (
+                <div className="bg-blue-50 p-3 rounded">
+                  <p className="text-sm text-blue-700">
+                    <i className="fas fa-eye mr-1"></i>
+                    Using mortar position as observer
                   </p>
                 </div>
               )}
             </div>
           </div>
+        </div>
 
-          {/* Observer Adjustments Interface */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">
-                <i className="fas fa-edit mr-2 text-orange-600"></i>
-                Fire Direction Adjustments
-              </h2>
-              <button
-                onClick={() => setShowAdjustments(!showAdjustments)}
-                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-              >
-                {showAdjustments ? 'Hide' : 'Show'} Adjustments
-              </button>
-            </div>
-
-            {/* Observer Point of View Info */}
-            <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800 font-medium">
-                <i className="fas fa-eye mr-2"></i>
-                Adjustments Point of View: {result.isUsingMortarAsObserver ? 'Mortar Team' : 'Forward Observer'}
-              </p>
-              <p className="text-xs text-blue-600 mt-1">
-                {result.isUsingMortarAsObserver 
-                  ? `Adjustments relative to mortar team at ${result.mortarGrid}`
-                  : `Adjustments relative to FO at ${result.observerGrid}`
-                }
-              </p>
-              {result.calculatedFromFO && (
-                <p className="text-xs text-green-600 mt-1">
-                  ✓ Original target calculated from FO azimuth ({result.foAzimuthMils} mils) and distance ({result.foDistanceMeters}m)
-                </p>
-              )}
-            </div>
-            
-            {showAdjustments && (
-              <div className="space-y-4">
-                <p className="text-sm text-gray-600 mb-4">
-                  Make adjustments and recalculate the firing solution. 
-                  Adjustments are relative to the {result.isUsingMortarAsObserver ? 'mortar team\'s' : 'observer\'s'} line of sight to target.
-                </p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Range Adjustment (meters)
-                    </label>
-                    <input
-                      type="number"
-                      value={rangeAdjustment || ''}
-                      onChange={(e) => setRangeAdjustment(Number(e.target.value) || 0)}
-                      placeholder="e.g., 100 (add), -50 (drop)"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Standard: "Add 100" or "Drop 50"</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Direction Adjustment (mils)
-                    </label>
-                    <input
-                      type="number"
-                      value={directionAdjustment || ''}
-                      onChange={(e) => setDirectionAdjustment(Number(e.target.value) || 0)}
-                      placeholder="e.g., 50 (right), -30 (left)"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Standard: "Right 50" or "Left 30"</p>
-                  </div>
-                </div>
-                
-                <div className="flex gap-3 mt-4">
-                  <button
-                    onClick={applyAdjustments}
-                    disabled={isCalculating || (rangeAdjustment === 0 && directionAdjustment === 0)}
-                    className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white py-3 px-6 rounded-lg font-semibold"
-                  >
-                    {isCalculating ? 'Calculating...' : 'Apply Adjustments & Recalculate'}
-                  </button>
-                    
-                  <button
-                    onClick={() => {
-                      setRangeAdjustment(0);
-                      setDirectionAdjustment(0);
-                    }}
-                    className="bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-lg font-medium"
-                  >
-                    Clear
-                  </button>
-                </div>
-                
-                {(rangeAdjustment !== 0 || directionAdjustment !== 0) && (
-                  <div className="mt-3 p-3 bg-orange-100 rounded-lg">
-                    <p className="text-sm text-orange-800">
-                      <strong>Pending Adjustments:</strong>
-                      {rangeAdjustment !== 0 && ` Range: ${rangeAdjustment > 0 ? 'ADD' : 'DROP'} ${Math.abs(rangeAdjustment)}m`}
-                      {directionAdjustment !== 0 && ` Direction: ${directionAdjustment > 0 ? 'RIGHT' : 'LEFT'} ${Math.abs(directionAdjustment)} mils`}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Adjustments Applied Display */}
-          {result.adjustmentApplied && (
-            <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
-              <h4 className="font-semibold text-orange-800 mb-2">
-                🎯 Observer Adjustments Applied
-              </h4>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <label className="block text-orange-600 font-medium">Range Adjustment</label>
-                  <p className="text-orange-800">
-                    {result.adjustmentApplied.range > 0 ? 'ADD' : 'DROP'} {Math.abs(result.adjustmentApplied.range)} meters
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-orange-600 font-medium">Direction Adjustment</label>
-                  <p className="text-orange-800">
-                    {result.adjustmentApplied.direction > 0 ? 'RIGHT' : 'LEFT'} {Math.abs(result.adjustmentApplied.direction)} mils
-                  </p>
-                </div>
-              </div>
-              {result.originalTargetGrid && (
-                <div className="mt-2 pt-2 border-t border-orange-200">
-                  <p className="text-xs text-orange-700">
-                    <strong>Original Target:</strong> {result.originalTargetGrid}
-                  </p>
-                  <p className="text-xs text-orange-700">
-                    <strong>Adjusted Target:</strong> {result.targetGrid}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Quick Actions */}
+        {/* Quick Actions */}
+        <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
             
@@ -636,73 +669,41 @@ Time of Flight: ${result.timeOfFlightS}s`;
               </button>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Adjustments Section */}
-      {result && (
-        <div className="mt-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">
-                <i className="fas fa-edit mr-2 text-yellow-600"></i>
-                Adjust Observer Settings
-              </h3>
-              
-              <button
-                onClick={() => setShowAdjustments(!showAdjustments)}
-                className="text-sm font-medium text-blue-600 hover:text-blue-800"
-              >
-                {showAdjustments ? 'Cancel' : 'Adjust Settings'}
-              </button>
-            </div>
-            
-            {showAdjustments && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500">Range Adjustment (m)</label>
-                    <input
-                      type="number"
-                      value={rangeAdjustment}
-                      onChange={(e) => setRangeAdjustment(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500">Direction Adjustment (mils)</label>
-                    <input
-                      type="number"
-                      value={directionAdjustment}
-                      onChange={(e) => setDirectionAdjustment(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
+          {/* Adjustments Applied Display */}
+          {result.adjustmentApplied && (
+            <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
+              <h4 className="font-semibold text-orange-800 mb-2">
+                🎯 Observer Adjustments Applied
+              </h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <label className="block text-orange-600 font-medium">Range Adjustment</label>
+                  <p className="text-orange-800">
+                    {result.adjustmentApplied.range > 0 ? 'ADD' : 'DROP'} {Math.abs(result.adjustmentApplied.range)} meters
+                  </p>
                 </div>
-                
-                <div className="flex justify-end gap-4">
-                  <button
-                    onClick={() => setShowAdjustments(false)}
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-lg font-semibold"
-                  >
-                    <i className="fas fa-arrow-left mr-2"></i>
-                    Back
-                  </button>
-                  
-                  <button
-                    onClick={applyAdjustments}
-                    disabled={isCalculating}
-                    className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-semibold"
-                  >
-                    <i className="fas fa-save mr-2"></i>
-                    {isCalculating ? 'Applying...' : 'Apply Adjustments'}
-                  </button>
+                <div>
+                  <label className="block text-orange-600 font-medium">Direction Adjustment</label>
+                  <p className="text-orange-800">
+                    {result.adjustmentApplied.direction > 0 ? 'RIGHT' : 'LEFT'} {Math.abs(result.adjustmentApplied.direction)} mils
+                  </p>
                 </div>
               </div>
-            )}
-          </div>
+              {result.originalTargetGrid && (
+                <div className="mt-2 pt-2 border-t border-orange-200">
+                  <p className="text-xs text-orange-700">
+                    <strong>Original Target:</strong> {result.originalTargetGrid}
+                  </p>
+                  <p className="text-xs text-orange-700">
+                    <strong>Adjusted Target:</strong> {result.targetGrid}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Additional Actions */}
       <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">

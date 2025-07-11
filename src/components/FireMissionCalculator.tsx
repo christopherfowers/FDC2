@@ -69,8 +69,8 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
       setCalculatorState({
         mortarGrid: initialMission.mortarGrid,
         observerGrid: initialMission.observerGrid,
-        foAzimuthMils: 0, // These are new fields, won't be in old missions
-        foDistanceMeters: 0,
+        foAzimuthMils: 0 // These are new fields, won't be in old missions
+        , foDistanceMeters: 0,
         targetGrid: initialMission.targetGrid,
         selectedSystem: initialMission.system,
         selectedRound: initialMission.round,
@@ -227,6 +227,10 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
       const selectedSystemData = mortarSystems.find(s => s.id === Number(selectedSystem));
       const selectedRoundData = compatibleRounds.find(r => r.id === Number(selectedRound));
       
+      // Debug: Check what the solution contains
+      console.log('Fire Direction Service solution:', solution);
+      console.log('Solution chargeLevel:', solution.chargeLevel);
+      
       const enrichedResult = {
         ...solution,
         observerGrid: effectiveObserverGrid,
@@ -243,6 +247,10 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
         foDistanceMeters,
         calculatedFromFO: !!calculatedTargetGrid
       };
+      
+      // Debug: Check what the enriched result contains
+      console.log('Enriched result chargeLevel:', enrichedResult.chargeLevel);
+      console.log('Full enriched result:', enrichedResult);
       
       // Auto-navigate to results page
       navigate(`/results?data=${encodeURIComponent(JSON.stringify(enrichedResult))}`);
