@@ -6,6 +6,20 @@ import type {
   FireSolutionResponse 
 } from '../types/mortar';
 
+// Fire mission calculation methods
+export type FireMissionMethod = 
+  | 'standard'           // Default: Closest range match (current behavior)
+  | 'efficiency'         // Lowest charge that can reach target
+  | 'speed'             // Fastest time of flight
+  | 'high_angle'        // Highest elevation angle (over obstacles)
+  | 'area_target';      // Higher dispersion for spread targets
+
+export interface FireMissionOptions {
+  method?: FireMissionMethod;
+  preferredCharge?: number;        // Optional charge preference
+  maxDispersion?: number;          // Max acceptable dispersion for area targets
+}
+
 export interface CompleteFiringSolution {
   // Target data
   targetGrid: string;
@@ -105,6 +119,106 @@ export class FireDirectionService {
   }
 
   /**
+   * Get tactical fire solution based on mission requirements
+   * Provides multiple calculation methods for different tactical situations
+   */
+  private getTacticalFireSolution(
+    mortarSystemId: number, 
+    mortarRoundId: number, 
+    rangeM: number,
+    method: FireMissionMethod = 'standard',
+    options: FireMissionOptions = {}
+  ): { solution: FireSolutionResponse; chargeLevel: string; reasoning: string } {
+    const data = this.getBallisticData(mortarSystemId, mortarRoundId);
+    
+    if (data.length === 0) {
+      throw new Error('No ballistic data found for this mortar system and round combination');
+    }
+
+    // Find all viable data points that can reach the target
+    const viableOptions = data.filter(d => Math.abs(d.rangeM - rangeM) <= 50); // Within 50m
+    
+    if (viableOptions.length === 0) {
+      // Fall back to interpolation if no direct matches
+      return {
+        solution: this.calculateFireSolution(mortarSystemId, mortarRoundId, rangeM),
+        chargeLevel: this.getChargeLevel(mortarSystemId, mortarRoundId, rangeM),
+        reasoning: 'Interpolated solution - no direct range matches available'
+      };
+    }
+
+    let selectedOption: MortarRoundData;
+    let reasoning: string;
+
+    switch (method) {
+      case 'efficiency':
+        // Select lowest charge that can reach target
+        selectedOption = viableOptions.reduce((best, curr) => 
+          curr.chargeLevel < best.chargeLevel ? curr : best
+        );
+        reasoning = `Efficiency mode: Selected Charge ${selectedOption.chargeLevel} for minimum propellant use and best accuracy (${selectedOption.avgDispersionM}m dispersion)`;
+        break;
+
+      case 'speed':
+        // Select fastest time of flight
+        selectedOption = viableOptions.reduce((best, curr) => 
+          curr.timeOfFlightS < best.timeOfFlightS ? curr : best
+        );
+        reasoning = `Speed mode: Selected Charge ${selectedOption.chargeLevel} for fastest delivery (${selectedOption.timeOfFlightS}s flight time)`;
+        break;
+
+      case 'high_angle':
+        // Select highest elevation angle (best for obstacles)
+        selectedOption = viableOptions.reduce((best, curr) => 
+          curr.elevationMils > best.elevationMils ? curr : best
+        );
+        reasoning = `High angle mode: Selected Charge ${selectedOption.chargeLevel} for maximum trajectory height (${selectedOption.elevationMils} mils elevation)`;
+        break;
+
+      case 'area_target': {
+        // Select higher dispersion for area targets, but within limits
+        const maxDispersion = options.maxDispersion || 35; // Default max dispersion
+        const areaOptions = viableOptions.filter(d => d.avgDispersionM <= maxDispersion);
+        
+        if (areaOptions.length > 0) {
+          selectedOption = areaOptions.reduce((best, curr) => 
+            curr.avgDispersionM > best.avgDispersionM ? curr : best
+          );
+          reasoning = `Area target mode: Selected Charge ${selectedOption.chargeLevel} for wider dispersion pattern (${selectedOption.avgDispersionM}m spread)`;
+        } else {
+          // Fall back to efficiency if no options meet dispersion criteria
+          selectedOption = viableOptions.reduce((best, curr) => 
+            curr.chargeLevel < best.chargeLevel ? curr : best
+          );
+          reasoning = `Area target mode: No suitable high-dispersion options, using efficient Charge ${selectedOption.chargeLevel}`;
+        }
+        break;
+      }
+
+      case 'standard':
+      default:
+        // Original behavior - closest range match
+        selectedOption = viableOptions.reduce((prev, curr) => 
+          Math.abs(curr.rangeM - rangeM) < Math.abs(prev.rangeM - rangeM) ? curr : prev
+        );
+        reasoning = `Standard mode: Selected Charge ${selectedOption.chargeLevel} for closest range match`;
+        break;
+    }
+
+    return {
+      solution: {
+        rangeM: selectedOption.rangeM,
+        elevationMils: selectedOption.elevationMils,
+        timeOfFlightS: selectedOption.timeOfFlightS,
+        avgDispersionM: selectedOption.avgDispersionM,
+        interpolated: false
+      },
+      chargeLevel: `Charge ${selectedOption.chargeLevel}`,
+      reasoning
+    };
+  }
+
+  /**
    * Calculate fire solution for specific range with high-accuracy interpolation
    * Uses derivative data when available for maximum precision
    */
@@ -189,14 +303,15 @@ export class FireDirectionService {
   }
 
   /**
-   * Complete fire mission calculation from observer to target
+   * Complete fire mission calculation from observer to target with tactical options
    */
   calculateCompleteFiringSolution(
     observerGrid: string,
     targetGrid: string,
     mortarSystemId: number,
-    mortarRoundId: number
-  ): CompleteFiringSolution {
+    mortarRoundId: number,
+    options: FireMissionOptions = {}
+  ): CompleteFiringSolution & { reasoning?: string } {
     // Get system and round info
     const mortarSystem = this.mortarSystems.find(s => s.id === mortarSystemId);
     const mortarRound = this.mortarRounds.find(r => r.id === mortarRoundId);
@@ -207,27 +322,53 @@ export class FireDirectionService {
 
     // Calculate target data using MGRS service
     const fireMission = MGRSService.calculateFireMission(observerGrid, targetGrid);
+    const targetRange = Math.round(fireMission.distanceMeters);
     
-    // Calculate fire solution
-    const solution = this.calculateFireSolution(
-      mortarSystemId, 
-      mortarRoundId, 
-      Math.round(fireMission.distanceMeters)
-    );
+    // Use tactical fire solution if method is specified
+    let solution: FireSolutionResponse;
+    let chargeLevel: string;
+    let reasoning: string | undefined;
+    
+    if (options.method && options.method !== 'standard') {
+      const tacticalResult = this.getTacticalFireSolution(
+        mortarSystemId, 
+        mortarRoundId, 
+        targetRange,
+        options.method,
+        options
+      );
+      solution = tacticalResult.solution;
+      chargeLevel = tacticalResult.chargeLevel;
+      reasoning = tacticalResult.reasoning;
+    } else {
+      // Standard calculation
+      solution = this.calculateFireSolution(
+        mortarSystemId, 
+        mortarRoundId, 
+        targetRange
+      );
+      chargeLevel = this.getChargeLevel(mortarSystemId, mortarRoundId, targetRange);
+    }
 
-    return {
+    const result: CompleteFiringSolution & { reasoning?: string } = {
       targetGrid,
       targetDistance: fireMission.distanceMeters,
       azimuthMils: fireMission.azimuthMils,
       backAzimuthMils: fireMission.backAzimuthMils,
       elevationMils: solution.elevationMils,
-      chargeLevel: this.getChargeLevel(mortarSystemId, mortarRoundId, Math.round(fireMission.distanceMeters)),
+      chargeLevel,
       timeOfFlightS: solution.timeOfFlightS,
       avgDispersionM: solution.avgDispersionM,
       interpolated: solution.interpolated,
       mortarSystem,
       mortarRound
     };
+    
+    if (reasoning) {
+      result.reasoning = reasoning;
+    }
+    
+    return result;
   }
 
   /**
@@ -241,8 +382,9 @@ export class FireDirectionService {
     mortarSystemId: number,
     mortarRoundId: number,
     rangeAdjustmentM: number,
-    directionAdjustmentMils: number
-  ): CompleteFiringSolution {
+    directionAdjustmentMils: number,
+    options: FireMissionOptions = {}
+  ): CompleteFiringSolution & { reasoning?: string } {
     // Apply observer adjustment to get new target coordinates
     const adjustment = MGRSService.applyObserverAdjustment(
       observerGrid,
@@ -256,7 +398,8 @@ export class FireDirectionService {
       mortarGrid,
       adjustment.adjustedTargetGrid,
       mortarSystemId,
-      mortarRoundId
+      mortarRoundId,
+      options
     );
 
     // Add adjustment information to the result

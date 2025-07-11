@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { FireDirectionService } from '../services/fireDirectionService';
+import type { FireMissionMethod } from '../services/fireDirectionService';
 import { csvDataService } from '../services/csvDataService';
 import { ServiceWorkerManager } from '../services/serviceWorkerManager';
 import type { MortarSystem, MortarRound } from '../types/mortar';
@@ -16,6 +17,8 @@ interface CalculatorState {
   rangeAdjustmentM: number;
   directionAdjustmentMils: number;
   notes: string;
+  fireMethod: FireMissionMethod;
+  maxDispersion?: number;
 }
 
 interface AppContextType {
@@ -69,7 +72,8 @@ export function AppProvider({ children }: AppProviderProps) {
     selectedRound: '',
     rangeAdjustmentM: 0,
     directionAdjustmentMils: 0,
-    notes: ''
+    notes: '',
+    fireMethod: 'standard'
   };
 
   // Calculator state with persistence

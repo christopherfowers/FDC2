@@ -13,6 +13,7 @@ interface FireMissionResult {
   timeOfFlightS: number;
   avgDispersionM: number;
   interpolated?: boolean;
+  reasoning?: string; // Added for tactical fire methods
   
   // Grid positions
   observerGrid: string;
@@ -376,6 +377,15 @@ Time of Flight: ${result.timeOfFlightS}s`;
                 <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
                   <p className="text-yellow-800 font-medium">
                     ⚠️ Solution is interpolated between available firing table data
+                  </p>
+                </div>
+              )}
+              
+              {result.reasoning && (
+                <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                  <p className="text-blue-800 font-medium">
+                    <i className="fas fa-lightbulb mr-2"></i>
+                    {result.reasoning}
                   </p>
                 </div>
               )}

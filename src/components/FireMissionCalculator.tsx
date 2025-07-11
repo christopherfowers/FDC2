@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { MGRSService } from '../services/mgrsService';
+import type { FireMissionMethod } from '../services/fireDirectionService';
 import { MGRSInput, validateMGRSInput } from './MGRSInput';
 import { fireMissionHistoryService } from '../services/fireMissionHistoryService';
 import type { FireMissionRecord } from '../services/fireMissionHistoryService';
@@ -43,7 +44,9 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
     selectedRound,
     rangeAdjustmentM,
     directionAdjustmentMils,
-    notes
+    notes,
+    fireMethod,
+    maxDispersion
   } = calculatorState;
 
   // Calculate target grid from FO data if available
@@ -73,7 +76,8 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
         selectedRound: initialMission.round,
         rangeAdjustmentM: initialMission.adjustments?.rangeAdjustmentM || 0,
         directionAdjustmentMils: initialMission.adjustments?.directionAdjustmentMils || 0,
-        notes: initialMission.notes || ''
+        notes: initialMission.notes || '',
+        fireMethod: 'standard' // Default for loaded missions
       });
     }
   }, [initialMission, setCalculatorState]);
@@ -96,7 +100,8 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
           selectedRound: '', // Will need to be set manually
           rangeAdjustmentM: adjustmentData.rangeAdjustmentM || 0,
           directionAdjustmentMils: adjustmentData.directionAdjustmentMils || 0,
-          notes: adjustmentData.notes || ''
+          notes: adjustmentData.notes || '',
+          fireMethod: 'standard' // Default for adjustments
         });
         
         // Clear the URL parameter
@@ -198,7 +203,11 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
           Number(selectedSystem)!,
           Number(selectedRound)!,
           rangeAdj,
-          dirAdj
+          dirAdj,
+          {
+            method: fireMethod,
+            maxDispersion: maxDispersion
+          }
         );
       } else {
         // Calculate mortar to target (standard firing solution)
@@ -206,7 +215,11 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
           mortarGrid,
           finalTargetGrid,
           Number(selectedSystem)!,
-          Number(selectedRound)!
+          Number(selectedRound)!,
+          {
+            method: fireMethod,
+            maxDispersion: maxDispersion
+          }
         );
       }
       
@@ -518,7 +531,64 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
           </div>
         )}
 
-
+        {/* Tactical Fire Method Selection */}
+        <div className="mt-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-purple-800 mb-3">
+            <i className="fas fa-crosshairs mr-2"></i>
+            Fire Solution Method
+          </h3>
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Calculation Method
+            </label>
+            <select
+              value={calculatorState.fireMethod}
+              onChange={(e) => setCalculatorState({ fireMethod: e.target.value as FireMissionMethod })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            >
+              <option value="standard">Standard - Closest range match (default)</option>
+              <option value="efficiency">Efficiency - Lowest charge for accuracy & economy</option>
+              <option value="speed">Speed - Fastest time of flight</option>
+              <option value="high_angle">High Angle - Maximum trajectory height</option>
+              <option value="area_target">Area Target - Wider dispersion pattern</option>
+            </select>
+            
+            <div className="text-sm text-gray-600 bg-white border border-gray-200 rounded p-3">
+              {calculatorState.fireMethod === 'standard' && (
+                <p><i className="fas fa-info-circle text-blue-500 mr-2"></i>Uses the charge with range closest to target distance. Best general-purpose method.</p>
+              )}
+              {calculatorState.fireMethod === 'efficiency' && (
+                <p><i className="fas fa-battery-quarter text-green-500 mr-2"></i>Selects the lowest charge that can reach the target for best accuracy and propellant conservation.</p>
+              )}
+              {calculatorState.fireMethod === 'speed' && (
+                <p><i className="fas fa-tachometer-alt text-red-500 mr-2"></i>Chooses the fastest time of flight for immediate effect on target.</p>
+              )}
+              {calculatorState.fireMethod === 'high_angle' && (
+                <p><i className="fas fa-mountain text-orange-500 mr-2"></i>Uses highest elevation angle to clear obstacles and achieve steeper descent.</p>
+              )}
+              {calculatorState.fireMethod === 'area_target' && (
+                <div>
+                  <p><i className="fas fa-expand text-purple-500 mr-2"></i>Selects higher dispersion for area targets and troop concentrations.</p>
+                  <div className="mt-2">
+                    <label htmlFor="maxDispersion" className="block text-xs font-medium text-gray-600 mb-1">
+                      Maximum Dispersion (meters)
+                    </label>
+                    <input
+                      type="number"
+                      id="maxDispersion"
+                      value={calculatorState.maxDispersion || 35}
+                      onChange={(e) => setCalculatorState({ maxDispersion: Number(e.target.value) || 35 })}
+                      min="10"
+                      max="100"
+                      className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
+                    />
+                    <span className="text-xs text-gray-500 ml-2">Default: 35m</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* Notes Field */}
         <div className="mt-6">
