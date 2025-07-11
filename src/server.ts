@@ -167,6 +167,9 @@ if (NODE_ENV === 'production') {
 
 // Error handling middleware
 app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  if (!_next) {
+    console.debug('No next function provided, using default error handler');  
+  }
   console.error('Unhandled error:', error);
   res.status(500).json({ error: 'Internal server error' });
 });
