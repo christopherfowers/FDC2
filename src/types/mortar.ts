@@ -1,4 +1,4 @@
-/* ---------- Mortar SQLite ⇢ TypeScript ---------- */
+/* ---------- Mortar CSV Data ⇢ TypeScript ---------- */
 
 /** mortar_system */
 export interface MortarSystem {

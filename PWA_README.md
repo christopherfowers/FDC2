@@ -1,45 +1,51 @@
 # Fire Direction Center (FDC) - PWA Ready
 
-A Progressive Web Application for mortar fire direction calculations using MGRS coordinates. Features offline capability, service worker caching, and complete frontend-based calculations.
+A Progressive Web Application for mortar fire direction calculations using MGRS coordinates. Features offline capability, service worker caching, and complete static client-side operation.
 
 ## 🚀 Features
 
 ### ✅ **PWA Ready**
 - **Offline Support** - Works without internet connection
-- **Service Worker** - Caches static assets and API data
-- **App Installation** - Install on desktop and mobile devices
+- **Service Worker** - Caches static assets and CSV data
+- **App Installation** - Install on desktop and mobile devices  
 - **Background Updates** - Automatic updates with user notification
 - **Responsive Design** - Works on all device sizes
 
-### ✅ **Complete Frontend Calculations**
+### ✅ **Complete Client-Side Operation**
 - **MGRS Service** - Grid normalization, validation, distance/azimuth calculations
 - **Fire Direction Service** - Ballistic calculations with interpolation
-- **Data Caching** - Smart caching with fallback to server data
-- **Offline Mode** - Full functionality without backend connection
+- **CSV Data Loading** - Static data assets with smart caching
+- **Offline Mode** - Full functionality without any server dependencies
 
-### ✅ **Backend API (Optional)**
-- **SQLite Database** - Mortar systems, rounds, and ballistic data
-- **REST API** - Data serving endpoints
-- **Live Updates** - Fetch fresh data when online
+### ✅ **Static Data Assets**
+- **CSV Files** - Mortar ballistic data as static assets
+- **No Backend Required** - Fully client-side architecture
+- **Fast Loading** - Pre-cached data for instant access
 
 ## 🏗️ Architecture
 
-### Frontend-First Design
+### Static Client-Side Design
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   React App     │    │  Service Worker  │    │  Backend API    │
-│                 │    │                  │    │   (Optional)    │
-│ • MGRS Service  │◄──►│ • Cache Static   │◄──►│ • Data Source   │
-│ • FD Service    │    │ • Cache API Data │    │ • Updates Only  │
-│ • Data Cache    │    │ • Offline Mode   │    │                 │
+│   React App     │    │  Service Worker  │    │  Static Assets  │
+│                 │    │                  │    │                 │
+│ • MGRS Service  │◄──►│ • Cache Static   │◄──►│ • CSV Data      │
+│ • FD Service    │    │ • Cache CSV Data │    │ • App Assets    │
+│ • CSV Service   │    │ • Offline Mode   │    │ • No Backend    │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
 ### Data Flow
 1. **App Loads** → Check cache → Load from service worker
-2. **Calculate** → Use frontend services (MGRS + Fire Direction)
-3. **Update Check** → Background sync with backend
-4. **Offline Mode** → Use cached data completely
+2. **Data Load** → Load CSV files from static assets
+3. **Calculate** → Use frontend services (MGRS + Fire Direction)
+4. **Offline Mode** → Use cached data completely (no server needed)
+
+## 🛠️ Development Setup
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
 
 ## 🛠️ Development Setup
 
@@ -54,18 +60,17 @@ git clone <repository>
 cd FDC2
 npm install
 
-# Start development (both frontend and backend)
-npm run dev:full
+# Start development (static with CSV data)
+npm run dev
 
-# Or start individually
-npm run server:watch  # Backend only
-npm run dev          # Frontend only
+# Build for production
+npm run build
+npm run preview
 ```
 
 ### Development URLs
-- **Frontend**: http://localhost:5174
-- **Backend API**: http://localhost:3001
-- **Health Check**: http://localhost:3001/health
+- **Frontend**: http://localhost:5173
+- **Preview Build**: http://localhost:4173
 
 ## 📱 PWA Installation
 
@@ -88,18 +93,15 @@ npm run dev          # Frontend only
 
 ### Environment Variables (`.env`)
 ```bash
-# API Configuration
-VITE_API_URL=http://localhost:3001
-
 # PWA Configuration  
 VITE_APP_NAME="Fire Direction Center"
 VITE_APP_SHORT_NAME="FDC"
 ```
 
 ### Service Worker
-- **Cache Strategy**: Cache-first for static assets, data endpoints
+- **Cache Strategy**: Cache-first for static assets and CSV data
 - **Update Strategy**: Background update with user notification
-- **Offline Fallback**: Cached data and app shell
+- **Offline Fallback**: Cached data and app shell (no backend required)
 
 ## 🎯 Usage
 
@@ -109,8 +111,8 @@ VITE_APP_SHORT_NAME="FDC"
    - Target grid (MGRS format)
    
 2. **Select Equipment**
-   - Choose mortar system (M252, M224, etc.)
-   - Select compatible round type
+   - Choose round type (M819, M821, M853A1, M879)
+   - Data loaded from static CSV files
    
 3. **Calculate**
    - Distance and azimuth automatically calculated
@@ -197,7 +199,7 @@ npm test:run
 - **Vite** for fast development and building
 - **Tailwind CSS** for styling
 - **Service Worker** for PWA features
-- **SQLite** for backend data storage
+- **CSV files** for data storage
 
 ### Performance Optimizations
 - **Code Splitting** - Vendor and service chunks

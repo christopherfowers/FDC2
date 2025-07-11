@@ -1,19 +1,5 @@
 import { useState, useEffect } from 'react';
-
-interface MortarSystem {
-  id: number;
-  name: string;
-  caliberMm: number;
-  nationality: string;
-}
-
-interface MortarRound {
-  id: number;
-  name: string;
-  roundType: string;
-  caliberMm: number;
-  nationality: string;
-}
+import { useApp } from '../contexts/AppContext';
 
 interface BallisticData {
   rangeM: number;
@@ -30,48 +16,25 @@ interface BallisticTable {
 }
 
 export function BallisticTablesPage() {
-  const [mortarSystems, setMortarSystems] = useState<MortarSystem[]>([]);
-  const [mortarRounds, setMortarRounds] = useState<MortarRound[]>([]);
+  const { mortarSystems, mortarRounds, fdService } = useApp();
   const [selectedSystemId, setSelectedSystemId] = useState<string>('');
   const [selectedRoundId, setSelectedRoundId] = useState<string>('');
   const [ballisticTable, setBallisticTable] = useState<BallisticTable | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
 
+  // Set default selections when data loads
   useEffect(() => {
-    loadMortarSystems();
-    loadMortarRounds();
-  }, []);
-
-  const loadMortarSystems = async () => {
-    try {
-      const response = await fetch('/api/mortar-systems');
-      if (response.ok) {
-        const systems = await response.json();
-        setMortarSystems(systems);
-        if (systems.length > 0) {
-          setSelectedSystemId(systems[0].id.toString());
-        }
-      }
-    } catch (error) {
-      console.error('Error loading mortar systems:', error);
+    if (mortarSystems.length > 0 && !selectedSystemId) {
+      setSelectedSystemId(mortarSystems[0].id.toString());
     }
-  };
+  }, [mortarSystems, selectedSystemId]);
 
-  const loadMortarRounds = async () => {
-    try {
-      const response = await fetch('/api/mortar-rounds');
-      if (response.ok) {
-        const rounds = await response.json();
-        setMortarRounds(rounds);
-        if (rounds.length > 0) {
-          setSelectedRoundId(rounds[0].id.toString());
-        }
-      }
-    } catch (error) {
-      console.error('Error loading mortar rounds:', error);
+  useEffect(() => {
+    if (mortarRounds.length > 0 && !selectedRoundId) {
+      setSelectedRoundId(mortarRounds[0].id.toString());
     }
-  };
+  }, [mortarRounds, selectedRoundId]);
 
   const loadBallisticTable = async () => {
     if (!selectedSystemId || !selectedRoundId) {
@@ -83,15 +46,42 @@ export function BallisticTablesPage() {
     setError('');
     
     try {
-      const response = await fetch(`/api/ballistic-table/${selectedSystemId}/${selectedRoundId}`);
-      if (response.ok) {
-        const table = await response.json();
-        setBallisticTable(table);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to load ballistic table');
+      // Get ballistic data using fdService
+      const systemId = parseInt(selectedSystemId);
+      const roundId = parseInt(selectedRoundId);
+      
+      const ballisticData = await fdService.getBallisticData(systemId, roundId);
+      
+      if (ballisticData.length === 0) {
+        setError('No ballistic data found for this combination');
         setBallisticTable(null);
+        return;
       }
+
+      // Find system and round info
+      const system = mortarSystems.find(s => s.id === systemId);
+      const round = mortarRounds.find(r => r.id === roundId);
+      
+      if (!system || !round) {
+        setError('Invalid system or round selection');
+        setBallisticTable(null);
+        return;
+      }
+
+      // Transform data to match expected format
+      const table: BallisticTable = {
+        mortarSystem: system.name,
+        mortarRound: round.name,
+        roundType: round.roundType,
+        ballisticData: ballisticData.map(data => ({
+          rangeM: data.rangeM,
+          elevationMils: data.elevationMils,
+          timeOfFlightS: data.timeOfFlightS,
+          avgDispersionM: data.avgDispersionM
+        }))
+      };
+      
+      setBallisticTable(table);
     } catch (error) {
       setError('Error loading ballistic table');
       setBallisticTable(null);

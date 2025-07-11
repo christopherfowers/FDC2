@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline - Static Site
 
 on:
   push:
@@ -26,16 +26,6 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         registry-url: 'https://registry.npmjs.org'
 
-    - name: Install system dependencies (Ubuntu)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential python3-dev python3-setuptools
-
-    - name: Set up Python for node-gyp
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-
     - name: Clear npm cache
       run: npm cache clean --force
 
@@ -43,33 +33,13 @@ jobs:
       run: |
         echo "Node version: $(node --version)"
         echo "NPM version: $(npm --version)"
-        echo "NPM config: $(npm config list)"
 
     - name: Install dependencies
       run: |
-        echo "Installing dependencies..."
-        # Try npm install first (more permissive), then npm ci if successful
-        npm install --verbose --legacy-peer-deps || (npm cache clean --force && npm install --verbose --legacy-peer-deps --no-optional)
+        echo "Installing dependencies for static build..."
+        npm ci --verbose
       env:
-        SQLITE3_BINARY_HOST_MIRROR: https://registry.npmmirror.com/-/binary/sqlite3/
         NPM_CONFIG_LOGLEVEL: verbose
-        # Force platform-specific binaries to install correctly
-        NPM_CONFIG_TARGET_PLATFORM: linux
-        NPM_CONFIG_TARGET_ARCH: x64
-
-    - name: Install SQLite3 fallback (if needed)
-      if: failure()
-      run: |
-        echo "Standard install failed, trying SQLite3 rebuild..."
-        npm install sqlite3 --build-from-source
-        
-    - name: Rebuild native dependencies (if needed)
-      if: failure()
-      run: |
-        echo "Rebuilding all native dependencies..."
-        npm rebuild
-        # Specifically handle rollup binaries
-        npm install @rollup/rollup-linux-x64-gnu --save-dev || echo "Rollup binary install failed, continuing..."
 
     - name: Run linting
       run: npm run lint
@@ -77,15 +47,24 @@ jobs:
     - name: Run tests
       run: npm run test:run
 
-    - name: Build application
+    - name: Build static application
       run: npm run build
+
+    - name: Verify build output
+      run: |
+        echo "Build output:"
+        ls -la dist/
+        echo "CSV data files:"
+        ls -la public/data/
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       if: success()
       with:
         name: build-files
-        path: dist/
+        path: |
+          dist/
+          public/data/
         retention-days: 1
 
   docker:
@@ -124,8 +103,8 @@ jobs:
           type=semver,pattern={{major}}
           type=raw,value=latest,enable={{is_default_branch}}
         labels: |
-          org.opencontainers.image.title=Fire Direction Calculator
-          org.opencontainers.image.description=PWA-ready React mortar fire direction calculator with offline capability
+          org.opencontainers.image.title=Fire Direction Calculator - Static Site
+          org.opencontainers.image.description=Static React PWA for mortar fire direction calculations with offline CSV data
           org.opencontainers.image.vendor=FDC2
           org.opencontainers.image.licenses=MIT
 

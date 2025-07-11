@@ -40,7 +40,7 @@ if curl -f "http://localhost:$PORT/health" > /dev/null 2>&1; then
     echo "🎯 Fire Direction Calculator is now running!"
     echo "🌐 Access the application at: http://localhost:$PORT"
     echo "📊 Health check: http://localhost:$PORT/health"
-    echo "🔧 API endpoints: http://localhost:$PORT/api/*"
+    echo "🔧 Static CSV data available at: /data/*"
     echo ""
     echo "📋 Useful commands:"
     echo "   View logs: docker-compose -f $COMPOSE_FILE logs -f"

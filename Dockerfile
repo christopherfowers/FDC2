@@ -1,5 +1,5 @@
-# Use Node.js LTS version
-FROM node:20-alpine
+# Multi-stage build for static React app
+FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -7,55 +7,63 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including dev dependencies for build)
+# Install dependencies
 RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Build the React app and backend (if applicable)
+# Build the React app for production
 RUN npm run build
 
 # Verify the build output exists
 RUN ls -la dist/
 
-# Remove dev dependencies and unnecessary source files for production
-RUN npm prune --production && \
-    rm -rf src/components src/contexts src/hooks src/types src/App.* src/main.tsx src/index.css && \
-    rm -rf src/services/mgrsService.ts src/services/serviceWorkerManager.ts && \
-    rm -rf *.md && \
-    rm -rf .env.example && \
-    rm -rf public && \
-    rm -rf node_modules/.cache && \
-    npm install tsx --save-prod
+# Production stage with Nginx
+FROM nginx:alpine
 
-# Verify CSV data files are present after cleanup
-RUN ls -la data/ || echo "❌ Data directory missing after cleanup"
+# Copy built assets from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Ensure dist directory and server files are accessible
-RUN ls -la && ls -la dist/ && ls -la src/
+# Copy CSV data files to serve as static assets
+COPY --from=builder /app/public/data /usr/share/nginx/html/data
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+# Create custom Nginx configuration for SPA
+RUN echo 'server {' > /etc/nginx/conf.d/default.conf && \
+    echo '    listen 80;' >> /etc/nginx/conf.d/default.conf && \
+    echo '    server_name localhost;' >> /etc/nginx/conf.d/default.conf && \
+    echo '    root /usr/share/nginx/html;' >> /etc/nginx/conf.d/default.conf && \
+    echo '    index index.html;' >> /etc/nginx/conf.d/default.conf && \
+    echo '    ' >> /etc/nginx/conf.d/default.conf && \
+    echo '    # Handle CSV data files' >> /etc/nginx/conf.d/default.conf && \
+    echo '    location /data/ {' >> /etc/nginx/conf.d/default.conf && \
+    echo '        try_files $uri =404;' >> /etc/nginx/conf.d/default.conf && \
+    echo '        add_header Cache-Control "public, max-age=300";' >> /etc/nginx/conf.d/default.conf && \
+    echo '    }' >> /etc/nginx/conf.d/default.conf && \
+    echo '    ' >> /etc/nginx/conf.d/default.conf && \
+    echo '    # Handle SPA routing - fallback to index.html' >> /etc/nginx/conf.d/default.conf && \
+    echo '    location / {' >> /etc/nginx/conf.d/default.conf && \
+    echo '        try_files $uri $uri/ /index.html;' >> /etc/nginx/conf.d/default.conf && \
+    echo '    }' >> /etc/nginx/conf.d/default.conf && \
+    echo '    ' >> /etc/nginx/conf.d/default.conf && \
+    echo '    # Security headers' >> /etc/nginx/conf.d/default.conf && \
+    echo '    add_header X-Frame-Options "SAMEORIGIN" always;' >> /etc/nginx/conf.d/default.conf && \
+    echo '    add_header X-Content-Type-Options "nosniff" always;' >> /etc/nginx/conf.d/default.conf && \
+    echo '    add_header Referrer-Policy "no-referrer-when-downgrade" always;' >> /etc/nginx/conf.d/default.conf && \
+    echo '    ' >> /etc/nginx/conf.d/default.conf && \
+    echo '    # Gzip compression' >> /etc/nginx/conf.d/default.conf && \
+    echo '    gzip on;' >> /etc/nginx/conf.d/default.conf && \
+    echo '    gzip_vary on;' >> /etc/nginx/conf.d/default.conf && \
+    echo '    gzip_min_length 1024;' >> /etc/nginx/conf.d/default.conf && \
+    echo '    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;' >> /etc/nginx/conf.d/default.conf && \
+    echo '}' >> /etc/nginx/conf.d/default.conf
 
-# Create data directory for SQLite database
-RUN mkdir -p /app/data && \
-    chown -R nodejs:nodejs /app
+# Expose port 80
+EXPOSE 80
 
-# Change ownership of app directory
-RUN chown -R nodejs:nodejs /app
-USER nodejs
-
-# Expose port
-EXPOSE 3001
-
-# Set production environment
-ENV NODE_ENV=production
-
-# Health check
+# Health check for static content
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "const http=require('http');const options={hostname:'localhost',port:3001,path:'/health',method:'GET'};const req=http.request(options,(res)=>{if(res.statusCode===200){process.exit(0)}else{process.exit(1)}});req.on('error',()=>{process.exit(1)});req.end();"
+  CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
 
-# Start the server
-CMD ["npm", "run", "server"]
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]

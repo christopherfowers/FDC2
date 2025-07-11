@@ -1,6 +1,6 @@
 # Fire Direction Center PWA
 
-A modern Progressive Web Application for military fire direction calculations, built with React, TypeScript, and Vite.
+A modern Progressive Web Application for military fire direction calculations, built with React, TypeScript, and Vite. Fully static client-side application with CSV data assets.
 
 ## Features
 
@@ -8,11 +8,11 @@ A modern Progressive Web Application for military fire direction calculations, b
 - Calculate firing solutions using MGRS coordinates
 - Support for observer, mortar, and target positions
 - Real-time ballistic calculations with interpolation
-- Compatible mortar systems and ammunition types
+- Multiple ammunition types from static CSV data
 
 ### 🚀 Progressive Web App
 - Full offline functionality with service worker caching
-- Automatic updates when new data is available
+- Static CSV data loaded and cached for instant access
 - Responsive design for desktop and mobile devices
 - Install as native app on supported platforms
 
@@ -22,11 +22,11 @@ A modern Progressive Web Application for military fire direction calculations, b
 - Mobile-responsive design with sticky navigation
 - Real-time PWA status indicators
 
-### ⚙️ Backend Integration
-- SQLite database with comprehensive ballistic data
-- REST API for mortar systems, rounds, and calculations
-- Smart data caching with localStorage
-- Background update checks
+### 📊 Static Data System
+- CSV files as static assets for ballistic data
+- Client-side CSV parsing and caching
+- No backend server or database required
+- Fast loading with smart data management
 
 ## Getting Started
 
@@ -49,17 +49,16 @@ npm install
 
 3. Start the development environment:
 ```bash
-npm run dev:full
+npm run dev
 ```
 
-This will start both the frontend (port 5174) and backend API server (port 3001).
+This will start the frontend development server on port 5173.
 
 ### Available Scripts
 
 - `npm run dev` - Start frontend development server
-- `npm run dev:full` - Start both frontend and backend servers
-- `npm run build` - Build for production
-- `npm run server` - Start backend API server
+- `npm run docker:build` - Build Docker image
+- `npm run docker:run` - Run Docker container
 - `npm run test` - Run unit tests
 
 ## Architecture
@@ -71,15 +70,15 @@ This will start both the frontend (port 5174) and backend API server (port 3001)
 - **Tailwind CSS v4** for responsive styling
 - **Font Awesome** icons for enhanced UI
 
-### Backend
-- **Node.js/Express** REST API server
-- **SQLite** database with mortar and ballistic data
-- **CORS** enabled for cross-origin requests
+### Data Layer
+- **CSV files** as static data assets
+- **Client-side parsing** of ballistic data
+- **No backend server** required - fully static
 
 ### PWA Features
 - Service worker for offline caching
 - Web app manifest for installation
-- Background sync for data updates
+- CSV data caching for offline access
 - Responsive design for all devices
 
 ## Key Components
@@ -90,7 +89,7 @@ This will start both the frontend (port 5174) and backend API server (port 3001)
 - Font Awesome icons for visual clarity
 
 ### Calculator Page
-- Three-position input system (Observer, Mortar, Target)
+- Round selection from available CSV data
 - Real-time validation and error handling
 - Comprehensive results display with firing commands
 
@@ -109,9 +108,9 @@ The application uses the Military Grid Reference System (MGRS) for all coordinat
 ## Offline Functionality
 
 - All calculations run client-side for offline capability
-- Ballistic data cached in localStorage
-- Service worker caches static assets and API responses
-- Graceful degradation when offline
+- CSV data cached by service worker
+- Static assets cached for complete offline operation
+- No server dependencies
 
 ## Mobile Support
 
@@ -119,22 +118,24 @@ The application uses the Military Grid Reference System (MGRS) for all coordinat
 - Touch-friendly interface elements
 - Progressive enhancement for mobile browsers
 - PWA installation on mobile devices
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+
+## Docker Deployment
+
+Build and run as a static application:
+
+```bash
+# Build Docker image
+docker build -t fdc2-app .
+
+# Run container (serves on port 80)
+docker run -p 80:80 fdc2-app
+```
+
+## Data Files
+
+CSV ballistic data included:
+- `M819_Smoke_Shell_Ballistics.csv`
+- `M821_HE_mortar_data.csv`
+- `M853A1_Illumination_Round_Ballistics.csv`
+- `M879_Practice_Round_Ballistics.csv`
 ```

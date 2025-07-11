@@ -1,4 +1,4 @@
-name: Manual Docker Build and Push
+name: Manual Docker Build and Push - Static Site
 
 on:
   workflow_dispatch:

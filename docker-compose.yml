@@ -5,28 +5,20 @@ services:
     image: christopherfowers/fdc2:latest
     container_name: fdc2-container
     ports:
-      - "3001:3001"
+      - "3002:80"  # Changed to port 80 for Nginx
     environment:
-      - NODE_ENV=production
-      - PORT=3001
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "const http=require('http');const options={hostname:'localhost',port:3001,path:'/health',method:'GET'};const req=http.request(options,(res)=>{if(res.statusCode===200){process.exit(0)}else{process.exit(1)}});req.on('error',()=>{process.exit(1)});req.end();"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
-    volumes:
-      # Mount a named volume for SQLite database persistence
-      - fdc2-data:/app/data
+      start_period: 10s
     networks:
       - fdc2-network
 
 networks:
   fdc2-network:
     driver: bridge
-
-# Volume for data persistence
-volumes:
-  fdc2-data:
-    driver: local

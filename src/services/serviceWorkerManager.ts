@@ -160,20 +160,21 @@ export class ServiceWorkerManager {
     if (!navigator.onLine) return;
 
     try {
-      // Prefetch critical API endpoints
-      const endpoints = [
-        '/api/mortar-systems',
-        '/api/mortar-rounds',
-        '/api/ballistic-data'
+      // Prefetch CSV data files
+      const csvFiles = [
+        '/data/M819_Smoke_Shell_Ballistics.csv',
+        '/data/M821_HE_mortar_data.csv',
+        '/data/M853A1_Illumination_Round_Ballistics.csv',
+        '/data/M879_Practice_Round_Ballistics.csv'
       ];
 
       await Promise.all(
-        endpoints.map(endpoint => fetch(endpoint))
+        csvFiles.map(file => fetch(file))
       );
 
-      console.log('Critical data prefetched');
+      console.log('Critical CSV data prefetched');
     } catch (error) {
-      console.warn('Failed to prefetch data:', error);
+      console.warn('Failed to prefetch CSV data:', error);
     }
   }
 }

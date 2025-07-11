@@ -9,12 +9,12 @@ const STATIC_CACHE_URLS = [
   // Add your built assets here - these will be populated during build
 ];
 
-// API endpoints that should be cached
-const CACHEABLE_APIS = [
-  '/api/mortar-systems',
-  '/api/mortar-rounds',
-  '/api/ballistic-data',
-  '/health'
+// CSV data files that should be cached
+const CACHEABLE_DATA = [
+  '/data/M819_Smoke_Shell_Ballistics.csv',
+  '/data/M821_HE_mortar_data.csv',
+  '/data/M853A1_Illumination_Round_Ballistics.csv',
+  '/data/M879_Practice_Round_Ballistics.csv'
 ];
 
 self.addEventListener('install', (event) => {
@@ -59,10 +59,10 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Handle API requests
-  if (url.pathname.startsWith('/api/') || url.pathname === '/health') {
+  // Handle CSV data requests
+  if (url.pathname.startsWith('/data/') && url.pathname.endsWith('.csv')) {
     event.respondWith(
-      handleApiRequest(request)
+      handleDataRequest(request)
     );
     return;
   }
@@ -75,12 +75,12 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-// Handle API requests with cache-first strategy for data endpoints
-async function handleApiRequest(request) {
+// Handle data requests with cache-first strategy for CSV files
+async function handleDataRequest(request) {
   const url = new URL(request.url);
   
-  // For data endpoints, try cache first, then network
-  if (CACHEABLE_APIS.some(api => url.pathname.startsWith(api))) {
+  // For CSV data files, try cache first, then network
+  if (CACHEABLE_DATA.some(dataFile => url.pathname === dataFile)) {
     try {
       const cache = await caches.open(DATA_CACHE_NAME);
       const cachedResponse = await cache.match(request);

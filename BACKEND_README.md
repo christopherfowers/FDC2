@@ -1,19 +1,20 @@
-# Mortar Fire Direction Center (FDC) Backend API
+# Mortar Fire Direction Center (FDC) - Static Data System
 
-A Node.js/Express backend with SQLite database for serving mortar ballistic data and fire solutions.
+A fully client-side Fire Direction Center application with static CSV data assets for mortar ballistic calculations.
 
 ## Features
 
-- **SQLite Database** with 3 tables:
-  - `mortar_system` - Mortar system specifications
-  - `mortar_round` - Round types and specifications  
-  - `mortar_round_data` - Ballistic data (range, elevation, time of flight, dispersion)
+- **Static CSV Data** files:
+  - M819_Smoke_Shell_Ballistics.csv
+  - M821_HE_mortar_data.csv
+  - M853A1_Illumination_Round_Ballistics.csv
+  - M879_Practice_Round_Ballistics.csv
 
-- **REST API** with endpoints for:
-  - Mortar systems and rounds
-  - Ballistic data queries with filters
+- **Client-side Data Service** with capabilities for:
+  - Loading and parsing CSV ballistic data
   - Fire solution calculations with interpolation
-  - Compatible round lookups
+  - Offline caching via service worker
+  - No server dependencies
 
 ## Quick Start
 
@@ -22,12 +23,13 @@ A Node.js/Express backend with SQLite database for serving mortar ballistic data
    npm install
    ```
 
-2. **Start the backend server:**
+2. **Build and serve the static app:**
    ```bash
-   npm run server
+   npm run build
+   npm run preview
    ```
 
-3. **Server will start on port 3001** with automatic database initialization
+3. **App will be available on port 4173** as a fully static site
 
 ## API Endpoints
 
@@ -39,108 +41,81 @@ Returns server status and timestamp.
 
 ### Mortar Systems
 ```
-GET /api/mortar-systems
-```
-Returns all mortar systems (M252, M224, L16A2, RT-F1).
+## CSV Data Structure
 
-### Mortar Rounds
-```
-GET /api/mortar-rounds
-GET /api/mortar-rounds?caliberMm=81
-```
-Returns all rounds, optionally filtered by caliber.
+Each CSV file contains columns for:
+- Range (meters)
+- Elevation (mils)
+- Time of Flight (seconds)
+- Dispersion (meters)
 
-### Ballistic Data
-```
-GET /api/ballistic-data
-GET /api/ballistic-data?mortarSystemId=1&mortarRoundId=1
-GET /api/ballistic-data?rangeMin=1000&rangeMax=3000
-```
-Returns ballistic data with optional filters for system, round, and range.
+### Available Data Files
+- `M819_Smoke_Shell_Ballistics.csv`
+- `M821_HE_mortar_data.csv`
+- `M853A1_Illumination_Round_Ballistics.csv`
+- `M879_Practice_Round_Ballistics.csv`
+## Data Structure
+
+The CSV files contain ballistic data with columns:
+- Range (meters)
+- Elevation (mils)
+- Time of Flight (seconds)
+- Dispersion (meters)
 
 ### Fire Solution Calculation
-```
-POST /api/fire-solution
-Content-Type: application/json
 
-{
-  "mortarSystemId": 1,
-  "mortarRoundId": 1,
-  "rangeM": 1500
-}
-```
-Returns calculated fire solution:
-```json
-{
-  "rangeM": 1500,
-  "elevationMils": 1225,
-  "timeOfFlightS": 19.0,
-  "avgDispersionM": 35.0,
-  "interpolated": true
-}
+The client-side service provides fire solution calculations with interpolation:
+
+```typescript
+import { csvDataService } from './services/csvDataService';
+
+// Get fire solution for a specific range
+const fireSolution = await csvDataService.getFireSolution('M821', 1500);
+
+console.log(`Range: ${fireSolution.rangeM}m, Elevation: ${fireSolution.elevationMils} mils`);
 ```
 
-### Compatible Rounds
-```
-GET /api/mortar-systems/1/compatible-rounds
-```
-Returns rounds compatible with a specific mortar system (same caliber).
+### Available Round Types
 
-### Ballistic Table
-```
-GET /api/ballistic-table/1/1
-```
-Returns complete ballistic table for a mortar system and round combination.
-
-## Sample Data
-
-The database includes realistic ballistic data for:
-- **M252 81mm Mortar** with **M931 HE** rounds
-- Range data from 100m to 5650m
-- Elevation, time of flight, and dispersion values
-- Interpolation support for ranges between data points
+- **M819** - Smoke Shell
+- **M821** - High Explosive (HE)
+- **M853A1** - Illumination Round
+- **M879** - Practice Round
 
 ## Technology Stack
 
-- **Node.js** with **Express**
-- **SQLite3** database
-- **TypeScript** for type safety
-- **tsx** for running TypeScript directly
-- **CORS** enabled for frontend integration
+- **React** with **TypeScript**
+- **Vite** for build tooling
+- **CSV parsing** for data loading
+- **Service Worker** for offline caching
+- **Static hosting** ready
 
 ## Integration with MGRS Service
 
-The backend pairs with the MGRS service for complete fire direction calculations:
+The application includes MGRS service for complete fire direction calculations:
 
 1. Use MGRS service to calculate distance between observer and target
-2. Use backend API to get fire solution for that range
+2. Use CSV data service to get fire solution for that range
 3. Combine for complete fire mission data
 
 Example workflow:
 ```typescript
 import { MGRSService } from './services/mgrsService';
+import { csvDataService } from './services/csvDataService';
 
 // Calculate distance using MGRS
 const distance = MGRSService.getDistance('32SMT1234567890', '32SMT1250068500');
 
-// Get fire solution from API
-const response = await fetch('/api/fire-solution', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    mortarSystemId: 1,
-    mortarRoundId: 1,
-    rangeM: Math.round(distance)
-  })
-});
+// Get fire solution from CSV data
+const fireSolution = await csvDataService.getFireSolution('M821', Math.round(distance));
 
-const fireSolution = await response.json();
 console.log(`Range: ${fireSolution.rangeM}m, Elevation: ${fireSolution.elevationMils} mils`);
 ```
 
 ## Scripts
 
-- `npm run server` - Start the backend server
-- `npm run server:watch` - Start with auto-restart on changes
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
 - `npm test` - Run tests
 - `npm run dev` - Start frontend development server (Vite)

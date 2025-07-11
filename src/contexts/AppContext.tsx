@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { FireDirectionService } from '../services/fireDirectionService';
-import { DataCacheService } from '../services/dataCacheService';
+import { csvDataService } from '../services/csvDataService';
 import { ServiceWorkerManager } from '../services/serviceWorkerManager';
 import type { MortarSystem, MortarRound } from '../types/mortar';
 
@@ -102,18 +102,19 @@ export function AppProvider({ children }: AppProviderProps) {
 
   const loadData = useCallback(async () => {
     try {
-      const dataCache = DataCacheService.getInstance();
-      const cachedData = await dataCache.loadData();
+      // Initialize CSV data service
+      await csvDataService.initialize();
+      
+      // Get data from CSV service
+      const systems = await csvDataService.getAllMortarSystems();
+      const rounds = await csvDataService.getAllMortarRounds();
+      const ballisticData = await csvDataService.getAllMortarRoundData();
 
-      // Initialize fire direction service with cached data
-      await fdService.initialize(
-        cachedData.systems,
-        cachedData.rounds,
-        cachedData.ballisticData
-      );
+      // Initialize fire direction service with CSV data
+      await fdService.initialize(systems, rounds, ballisticData);
 
-      setMortarSystems(cachedData.systems);
-      setMortarRounds(cachedData.rounds);
+      setMortarSystems(systems);
+      setMortarRounds(rounds);
 
     } catch (err) {
       throw new Error(`Failed to load data: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -172,17 +173,18 @@ export function AppProvider({ children }: AppProviderProps) {
       setIsLoading(true);
       setError(null);
 
-      const dataCache = DataCacheService.getInstance();
-      const freshData = await dataCache.loadData(true); // Force refresh
+      // Force refresh CSV data
+      await csvDataService.initialize(true); // Force refresh
+      
+      // Get fresh data from CSV service
+      const systems = await csvDataService.getAllMortarSystems();
+      const rounds = await csvDataService.getAllMortarRounds();
+      const ballisticData = await csvDataService.getAllMortarRoundData();
 
-      await fdService.initialize(
-        freshData.systems,
-        freshData.rounds,
-        freshData.ballisticData
-      );
+      await fdService.initialize(systems, rounds, ballisticData);
 
-      setMortarSystems(freshData.systems);
-      setMortarRounds(freshData.rounds);
+      setMortarSystems(systems);
+      setMortarRounds(rounds);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to refresh data');
@@ -204,11 +206,10 @@ export function AppProvider({ children }: AppProviderProps) {
   const clearCache = async () => {
     try {
       const swManager = ServiceWorkerManager.getInstance();
-      const dataCache = DataCacheService.getInstance();
       
       await Promise.all([
         swManager.clearCaches(),
-        dataCache.clearCache()
+        csvDataService.clearCache()
       ]);
 
       // Reload to get fresh data
