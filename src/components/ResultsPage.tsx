@@ -219,6 +219,33 @@ Time of Flight: ${result.timeOfFlightS}s`;
     );
   }
 
+  // Generate fire command in military format
+  const generateFireCommand = () => {
+    // Extract round type and clean it up
+    let roundType = 'HE';
+    if (result.roundName) {
+      if (result.roundName.toLowerCase().includes('he')) roundType = 'HE';
+      else if (result.roundName.toLowerCase().includes('illumination')) roundType = 'ILLUM';
+      else if (result.roundName.toLowerCase().includes('practice')) roundType = 'TP';
+      else if (result.roundName.toLowerCase().includes('smoke')) roundType = 'WP';
+    }
+    
+    const targetGridFormatted = result.targetGrid.replace(/\s+/g, '');
+    
+    return `"Gunline, fire mission, Grid ${targetGridFormatted},\n3 rounds ${roundType}, ${result.chargeLevel}, Deflection ${result.azimuthMils}, Elevation ${result.elevationMils},\nFire when ready, Over"`;
+  };
+
+  const copyFireCommand = () => {
+    const command = generateFireCommand().replace(/^"|"$/g, ''); // Remove quotes for copying
+    navigator.clipboard.writeText(command).then(() => {
+      setSaveMessage('Fire command copied to clipboard!');
+      setTimeout(() => setSaveMessage(''), 3000);
+    }).catch(() => {
+      setSaveMessage('Failed to copy to clipboard');
+      setTimeout(() => setSaveMessage(''), 3000);
+    });
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Header */}
@@ -238,6 +265,37 @@ Time of Flight: ${result.timeOfFlightS}s`;
         <p className="text-gray-600">
           Complete firing solution and observer data
         </p>
+      </div>
+
+      {/* Fire Command Section */}
+      <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-lg p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-red-800">
+            <i className="fas fa-radio mr-2"></i>
+            Fire Command Script
+          </h2>
+          <button
+            onClick={copyFireCommand}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2"
+          >
+            <i className="fas fa-copy"></i>
+            <span>Copy Command</span>
+          </button>
+        </div>
+        
+        <div className="bg-white border border-red-300 rounded-lg p-4">
+          <div className="mb-2">
+            <span className="text-sm font-medium text-gray-600">Radio Transmission:</span>
+          </div>
+          <div className="bg-gray-900 text-green-400 p-4 rounded border font-mono text-sm leading-relaxed whitespace-pre-line">
+            {generateFireCommand()}
+          </div>
+        </div>
+        
+        <div className="mt-3 text-xs text-red-700">
+          <i className="fas fa-info-circle mr-1"></i>
+          Standard fire mission format. Adjust round count and type as needed. Copy to clipboard for radio transmission.
+        </div>
       </div>
 
       {/* Save Message */}
