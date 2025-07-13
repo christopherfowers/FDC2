@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
-import { FireDirectionService, type FireMissionMethod } from '../services/fireDirectionService';
+import type { FireMissionMethod } from '../services/fireDirectionService';
 import type { FireSolution, FireMissionCorrection } from '../types/mission';
 
 interface LocationState {
@@ -22,6 +22,7 @@ export function FireSolutionPage() {
     currentMission,
     updateMission,
     mortarRounds,
+    fdService,
     isLoading 
   } = useApp();
 
@@ -63,10 +64,6 @@ export function FireSolutionPage() {
         throw new Error('Selected round type not found');
       }
 
-      // Initialize FireDirectionService
-      const fireDirectionService = new FireDirectionService();
-      await fireDirectionService.initialize([], mortarRounds, []);
-
       // Map optimization to FireMissionMethod
       const methodMap: Record<string, FireMissionMethod> = {
         'speed': 'speed',
@@ -76,8 +73,8 @@ export function FireSolutionPage() {
         'efficiency': 'efficiency'
       };
 
-      // Calculate complete firing solution using real service
-      const result = fireDirectionService.calculateCompleteFiringSolution(
+      // Calculate complete firing solution using initialized service from context
+      const result = fdService.calculateCompleteFiringSolution(
         state.foPosition,
         state.targetGrid,
         parseInt(currentMission.selectedSystem),
