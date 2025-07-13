@@ -1,7 +1,9 @@
 import { AppSettings, PWAStatus } from './PWAComponents';
 import { FDCIcon } from './FDCLogo';
+import { useSEO, SEOConfig } from '../hooks/useSEO';
 
 export function SettingsPage() {
+  useSEO(SEOConfig.settings);
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
       <PWAStatus />

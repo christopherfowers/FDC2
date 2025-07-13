@@ -1,0 +1,33 @@
+/* TEAM */
+    Developer: Fire Direction Center Team
+    Contact: dev [at] tactical-apps.com
+    Location: United States
+
+/* THANKS */
+    Open Source Contributors
+    Military Subject Matter Experts
+    Testing Community
+
+/* SITE */
+    Last update: 2025-07-12
+    Language: English
+    Doctype: HTML5
+    IDE: Visual Studio Code
+    Framework: React, TypeScript, Vite
+    Hosting: Static CDN
+
+/* FEATURES */
+    - Mortar ballistic calculations
+    - MGRS coordinate support
+    - Progressive Web App
+    - Offline functionality
+    - Multi-gun calculations
+    - Mission planning workflow
+    - Advanced FPF management
+    - Load distribution optimization
+
+/* STANDARDS */
+    HTML5, CSS3, ES6+, TypeScript
+    PWA Standards
+    Web Accessibility Guidelines
+    Security Best Practices

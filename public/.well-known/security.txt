@@ -1,0 +1,6 @@
+Contact: security@tactical-apps.com
+Expires: 2026-07-12T00:00:00.000Z
+Acknowledgments: https://fdc.tactical-apps.com/security-acknowledgments
+Preferred-Languages: en
+Canonical: https://fdc.tactical-apps.com/.well-known/security.txt
+Policy: https://fdc.tactical-apps.com/security-policy

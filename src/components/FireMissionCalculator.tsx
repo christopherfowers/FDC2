@@ -384,7 +384,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
                     value={foAzimuthMils || ''}
                     onChange={(e) => setCalculatorState({ foAzimuthMils: Number(e.target.value) || 0 })}
                     placeholder="e.g., 3200"
-                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 ${
                       validationErrors.foAzimuth ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -404,7 +404,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
                     value={foDistanceMeters || ''}
                     onChange={(e) => setCalculatorState({ foDistanceMeters: Number(e.target.value) || 0 })}
                     placeholder="e.g., 2500"
-                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 ${
                       validationErrors.foDistance ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -487,7 +487,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
                   selectedRound: '' // Reset round selection
                 });
               }}
-              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 ${
                 validationErrors.system ? 'border-red-500' : 'border-gray-300'
               }`}
             >
@@ -512,7 +512,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
               value={selectedRound || ''}
               onChange={(e) => setCalculatorState({ selectedRound: e.target.value })}
               disabled={!selectedSystem}
-              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-900 ${
                 validationErrors.round ? 'border-red-500' : 'border-gray-300'
               }`}
             >
@@ -552,7 +552,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
             <select
               value={calculatorState.fireMethod}
               onChange={(e) => setCalculatorState({ fireMethod: e.target.value as FireMissionMethod })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
             >
               <option value="standard">Standard - Closest range match (default)</option>
               <option value="efficiency">Efficiency - Lowest charge for accuracy & economy</option>
@@ -588,7 +588,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
                       onChange={(e) => setCalculatorState({ maxDispersion: Number(e.target.value) || 35 })}
                       min="10"
                       max="100"
-                      className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
+                      className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 text-gray-900"
                     />
                     <span className="text-xs text-gray-500 ml-2">Default: 35m</span>
                   </div>
@@ -609,7 +609,7 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
             onChange={(e) => setCalculatorState({ notes: e.target.value })}
             placeholder="Add any additional notes for this fire mission..."
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
           />
         </div>
 

@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Allow all crawlers access to CSS and JS files
+Allow: /assets/
+Allow: /icons/
+Allow: /*.css
+Allow: /*.js
+
+# Sitemap location
+Sitemap: https://fdc.tactical-apps.com/sitemap.xml
+
+# Crawl delay (be respectful)
+Crawl-delay: 1

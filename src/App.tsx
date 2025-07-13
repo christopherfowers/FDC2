@@ -4,13 +4,17 @@ import { Navigation } from './components/Navigation';
 import { Footer } from './components/Footer';
 import { CalculatorPage } from './components/CalculatorPage';
 import { SettingsPage } from './components/SettingsPage';
-import { HistoryPage } from './components/HistoryPage';
+import { EnhancedHistoryPage } from './components/EnhancedHistoryPage';
 import { ResultsPage } from './components/ResultsPage';
 import { NotFoundPage } from './components/NotFoundPage';
 import { TermsOfServicePage } from './components/TermsOfServicePage';
 import { PrivacyPolicyPage } from './components/PrivacyPolicyPage';
 import { LicensePage } from './components/LicensePage';
 import { BallisticTablesPage } from './components/BallisticTablesPage';
+import { MissionPrepPage } from './components/MissionPrepPage';
+import { FireMissionPage } from './components/FireMissionPage';
+import { FireSolutionPage } from './components/FireSolutionPage';
+import { MissionDashboard } from './components/MissionDashboard';
 import './App.css';
 
 function App() {
@@ -22,10 +26,14 @@ function App() {
           
           <main className="flex-grow">
             <Routes>
-              <Route path="/" element={<CalculatorPage />} />
+              <Route path="/" element={<MissionDashboard />} />
+              <Route path="/calculator" element={<CalculatorPage />} />
               <Route path="/results" element={<ResultsPage />} />
-              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/history" element={<EnhancedHistoryPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/mission/prep" element={<MissionPrepPage />} />
+              <Route path="/mission/calculate" element={<FireMissionPage />} />
+              <Route path="/mission/solution" element={<FireSolutionPage />} />
               <Route path="/terms" element={<TermsOfServicePage />} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
               <Route path="/license" element={<LicensePage />} />

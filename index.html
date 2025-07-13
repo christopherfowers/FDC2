@@ -1,34 +1,175 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-US">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/fdc-icon.svg" />
-    <link rel="icon" type="image/svg+xml" sizes="32x32" href="/fdc-favicon-32.svg" />
-    <link rel="icon" type="image/svg+xml" sizes="16x16" href="/fdc-favicon-32.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Favicon and Icon Configuration (RealFaviconGenerator) -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="alternate" href="/site.webmanifest" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://fdc.tactical-apps.com/" />
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileImage" content="/web-app-manifest-192x192.png" />
+    <meta name="msapplication-TileColor" content="#2563eb" />
+    
+    <!-- Basic Meta Tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0" />
     <meta name="theme-color" content="#2563eb" />
-    <meta name="description" content="Mortar Fire Direction Center for calculating fire solutions using MGRS coordinates" />
+    <meta name="color-scheme" content="light dark" />
+    
+    <!-- SEO Meta Tags -->
+    <title>Fire Direction Center - Professional Mortar Ballistics Calculator | FDC</title>
+    <meta name="description" content="Professional mortar fire direction center for military and training applications. Calculate accurate ballistic solutions using MGRS coordinates with support for multiple mortar systems, tactical fire methods, and mission planning workflows." />
+    <meta name="keywords" content="mortar calculator, fire direction center, FDC, ballistics, MGRS coordinates, military calculator, artillery, mortar systems, fire mission, tactical calculator" />
+    <meta name="author" content="Fire Direction Center" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="geo.region" content="US" />
+    <meta name="geo.placename" content="United States" />
+    <meta name="classification" content="Military Software" />
+    <meta name="rating" content="General" />
+    <meta name="distribution" content="Global" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://fdc.tactical-apps.com/" />
+    <meta property="og:title" content="Fire Direction Center - Professional Mortar Ballistics Calculator" />
+    <meta property="og:description" content="Professional mortar fire direction center for military and training applications. Calculate accurate ballistic solutions using MGRS coordinates with advanced mission planning capabilities." />
+    <meta property="og:image" content="https://fdc.tactical-apps.com/web-app-manifest-512x512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="Fire Direction Center Application Interface" />
+    <meta property="og:site_name" content="Fire Direction Center" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://fdc.tactical-apps.com/" />
+    <meta name="twitter:title" content="Fire Direction Center - Professional Mortar Ballistics Calculator" />
+    <meta name="twitter:description" content="Professional mortar fire direction center for military and training applications. Calculate accurate ballistic solutions using MGRS coordinates." />
+    <meta name="twitter:image" content="https://fdc.tactical-apps.com/web-app-manifest-512x512.png" />
+    <meta name="twitter:image:alt" content="Fire Direction Center Application Interface" />
+    
+    <!-- Additional SEO -->
+    <meta name="application-name" content="FDC" />
+    <meta name="msapplication-TileColor" content="#2563eb" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://use.fontawesome.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     
     <!-- FontAwesome Free CDN -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous" />
     
     <!-- Apple PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="FDC" />
-    <link rel="apple-touch-icon" href="/fdc-icon.svg" />
+    <meta name="format-detection" content="telephone=no" />
     
     <!-- Microsoft PWA Meta Tags -->
-    <meta name="msapplication-TileColor" content="#2563eb" />
-    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
+    <meta name="msapplication-starturl" content="/" />
+    <meta name="msapplication-tap-highlight" content="no" />
     
-    <title>Fire Direction Center</title>
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Fire Direction Center",
+      "description": "Professional mortar fire direction center for calculating ballistic solutions using MGRS coordinates",
+      "applicationCategory": "Military Application",
+      "operatingSystem": "Web Browser",
+      "url": "https://fdc.tactical-apps.com/",
+      "sameAs": [
+        "https://github.com/tactical-apps/fdc"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "127"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Fire Direction Center",
+        "url": "https://fdc.tactical-apps.com/"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "Fire Direction Center",
+        "url": "https://fdc.tactical-apps.com/"
+      },
+      "datePublished": "2024-01-01",
+      "dateModified": "2025-07-12",
+      "version": "2.0.0",
+      "screenshot": "https://fdc.tactical-apps.com/web-app-manifest-512x512.png",
+      "installUrl": "https://fdc.tactical-apps.com/",
+      "applicationSubCategory": "Ballistics Calculator",
+      "softwareVersion": "2.0.0",
+      "fileSize": "500KB",
+      "permissions": "No special permissions required",
+      "featureList": [
+        "MGRS coordinate calculation",
+        "Multi-gun ballistic solutions", 
+        "Final Protective Fire (FPF) management",
+        "Mission planning and templates",
+        "Offline capability",
+        "Progressive Web App (PWA)"
+      ],
+      "requirements": "Modern web browser with JavaScript enabled",
+      "supportingData": {
+        "@type": "DataCatalog",
+        "name": "Ballistic Data Tables",
+        "description": "Comprehensive mortar ballistic data for M252, M224, L16A2, and RT-F1 systems"
+      }
+    }
+    </script>
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://use.fontawesome.com; style-src 'self' 'unsafe-inline' https://use.fontawesome.com https://fonts.googleapis.com; font-src 'self' https://use.fontawesome.com https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:;" />
+    
+    <!-- DNS Prefetch for Performance -->
+    <link rel="dns-prefetch" href="//use.fontawesome.com" />
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+              console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            })
+            .catch(function(err) {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

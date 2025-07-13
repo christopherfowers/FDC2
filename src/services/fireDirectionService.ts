@@ -1,10 +1,17 @@
 import { MGRSService } from './mgrsService';
+import { MultiGunService } from './multiGunService';
 import type { 
   MortarSystem, 
   MortarRound, 
   MortarRoundData,
   FireSolutionResponse 
 } from '../types/mortar';
+import type {
+  MultiGunSpread,
+  SynchronizedFireSolution,
+  LoadDistribution,
+  FireSolution
+} from '../types/mission';
 
 // Fire mission calculation methods
 export type FireMissionMethod = 
@@ -439,5 +446,82 @@ export class FireDirectionService {
       min: Math.min(...data.map(d => d.rangeM)),
       max: Math.max(...data.map(d => d.rangeM))
     };
+  }
+
+  /**
+   * Calculate multi-gun synchronized fire solution
+   */
+  calculateMultiGunFireSolution(
+    gunSpread: MultiGunSpread,
+    targetGrid: string,
+    mortarSystemId: number,
+    mortarRoundId: number,
+    options: FireMissionOptions = {}
+  ): SynchronizedFireSolution {
+    // Calculate master gun solution (base gun)
+    const baseGun = gunSpread.gunPositions[0];
+    const masterSolution = this.calculateCompleteFiringSolution(
+      baseGun.position,
+      targetGrid,
+      mortarSystemId,
+      mortarRoundId,
+      options
+    );
+
+    // Convert to mission FireSolution format
+    const masterFireSolution: FireSolution = {
+      azimuthMils: masterSolution.azimuthMils,
+      elevationMils: masterSolution.elevationMils,
+      chargeLevel: masterSolution.chargeLevel,
+      timeOfFlight: masterSolution.timeOfFlightS,
+      rangeMeters: masterSolution.targetDistance
+    };
+
+    // Use MultiGunService to calculate synchronized solution
+    return MultiGunService.calculateSynchronizedFireSolution(
+      gunSpread,
+      targetGrid,
+      masterFireSolution,
+      true // Simultaneous impact
+    );
+  }
+
+  /**
+   * Calculate load distribution for multi-gun mission
+   */
+  calculateMultiGunLoadDistribution(
+    numberOfGuns: number,
+    totalRounds: number,
+    method: LoadDistribution['distributionMethod'] = 'equal',
+    priorities?: Array<{ gunId: string; priority: number }>
+  ): LoadDistribution {
+    return MultiGunService.calculateLoadDistribution(
+      numberOfGuns,
+      totalRounds,
+      method,
+      priorities
+    );
+  }
+
+  /**
+   * Generate multi-gun fire commands
+   */
+  generateMultiGunFireCommands(
+    synchronizedSolution: SynchronizedFireSolution,
+    loadDistribution: LoadDistribution,
+    roundType: string = 'HE'
+  ): Array<{ gunId: string; gunName: string; command: string }> {
+    return MultiGunService.generateMultiGunFireCommands(
+      synchronizedSolution,
+      loadDistribution,
+      roundType
+    );
+  }
+
+  /**
+   * Validate multi-gun configuration
+   */
+  validateMultiGunConfiguration(gunSpread: MultiGunSpread): { isValid: boolean; errors: string[] } {
+    return MultiGunService.validateGunSpread(gunSpread);
   }
 }

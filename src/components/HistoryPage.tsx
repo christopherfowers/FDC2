@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FireMissionDetailModal } from './FireMissionDetailModal';
 import { fireMissionHistoryService } from '../services/fireMissionHistoryService';
+import { useSEO, SEOConfig } from '../hooks/useSEO';
 import type { FireMissionRecord, FireMissionSummary } from '../services/fireMissionHistoryService';
 
 interface HistoryPageProps {
@@ -8,6 +9,7 @@ interface HistoryPageProps {
 }
 
 export function HistoryPage({ onEditMission }: HistoryPageProps) {
+  useSEO(SEOConfig.history);
   const [missions, setMissions] = useState<FireMissionSummary[]>([]);
   const [filteredMissions, setFilteredMissions] = useState<FireMissionSummary[]>([]);
   const [searchQuery, setSearchQuery] = useState('');

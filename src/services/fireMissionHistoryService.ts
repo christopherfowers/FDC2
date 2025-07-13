@@ -1,6 +1,7 @@
 export interface FireMissionRecord {
   id: string;
   timestamp: Date;
+  missionId?: string;  // Optional mission ID for mission-based tracking
   observerGrid: string;
   mortarGrid: string;
   targetGrid: string;
@@ -86,6 +87,53 @@ class FireMissionHistoryService {
       console.warn('Failed to load fire mission history:', error);
       return [];
     }
+  }
+
+  /**
+   * Get fire missions by mission ID
+   */
+  getHistoryByMission(missionId: string): FireMissionRecord[] {
+    return this.getHistory().filter(record => record.missionId === missionId);
+  }
+
+  /**
+   * Get mission statistics
+   */
+  getMissionStatistics(missionId: string): {
+    totalFireMissions: number;
+    totalRounds: number;
+    averageTimeOfFlight: number;
+    mostUsedRound: string;
+    lastFireMission?: Date;
+  } {
+    const missions = this.getHistoryByMission(missionId);
+    
+    if (missions.length === 0) {
+      return {
+        totalFireMissions: 0,
+        totalRounds: 0,
+        averageTimeOfFlight: 0,
+        mostUsedRound: 'None'
+      };
+    }
+
+    const totalRounds = missions.length; // Assuming 1 record = 1 round fired
+    const avgTimeOfFlight = missions.reduce((sum, m) => sum + m.fireSolution.timeOfFlight, 0) / missions.length;
+    
+    // Find most used round
+    const roundCounts: Record<string, number> = {};
+    missions.forEach(m => {
+      roundCounts[m.round] = (roundCounts[m.round] || 0) + 1;
+    });
+    const mostUsedRound = Object.entries(roundCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+
+    return {
+      totalFireMissions: missions.length,
+      totalRounds,
+      averageTimeOfFlight: Number(avgTimeOfFlight.toFixed(1)),
+      mostUsedRound,
+      lastFireMission: missions[0]?.timestamp // Assuming sorted by newest first
+    };
   }
 
   /**

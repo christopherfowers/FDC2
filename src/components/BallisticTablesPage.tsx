@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../contexts/AppContext';
+import { useSEO, SEOConfig } from '../hooks/useSEO';
 
 interface BallisticData {
   rangeM: number;
@@ -20,6 +21,7 @@ type SortField = keyof BallisticData;
 type SortDirection = 'asc' | 'desc';
 
 export function BallisticTablesPage() {
+  useSEO(SEOConfig.ballisticTables);
   const { mortarSystems, mortarRounds, fdService } = useApp();
   const [selectedSystemId, setSelectedSystemId] = useState<string>('');
   const [selectedRoundId, setSelectedRoundId] = useState<string>('');
@@ -166,7 +168,7 @@ export function BallisticTablesPage() {
                 id="system"
                 value={selectedSystemId}
                 onChange={(e) => handleSystemChange(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               >
                 <option value="">Select System...</option>
                 {mortarSystems.map((system) => (
@@ -185,7 +187,7 @@ export function BallisticTablesPage() {
                 id="round"
                 value={selectedRoundId}
                 onChange={(e) => handleRoundChange(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               >
                 <option value="">Select Round...</option>
                 {mortarRounds.map((round) => (

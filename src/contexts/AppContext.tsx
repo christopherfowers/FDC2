@@ -4,7 +4,9 @@ import { FireDirectionService } from '../services/fireDirectionService';
 import type { FireMissionMethod } from '../services/fireDirectionService';
 import { csvDataService } from '../services/csvDataService';
 import { ServiceWorkerManager } from '../services/serviceWorkerManager';
+import { missionService } from '../services/missionService';
 import type { MortarSystem, MortarRound } from '../types/mortar';
+import type { Mission, MissionSummary, CreateMissionData, CreateFPFTargetData, FPFTarget, MissionPhase } from '../types/mission';
 
 interface CalculatorState {
   mortarGrid: string;
@@ -35,10 +37,30 @@ interface AppContextType {
   isOffline: boolean;
   hasUpdate: boolean;
 
-  // Calculator state
+  // Calculator state (quick calculator with streamlined features)
   calculatorState: CalculatorState;
   setCalculatorState: (state: Partial<CalculatorState>) => void;
   resetCalculatorState: () => void;
+
+  // Mission workflow state
+  currentMission: Mission | null;
+  missions: MissionSummary[];
+
+  // Mission management actions
+  createMission: (missionData: CreateMissionData) => Promise<string>;
+  updateMission: (id: string, updates: Partial<Mission>) => Promise<void>;
+  deleteMission: (id: string) => Promise<void>;
+  setCurrentMission: (id: string | null) => Promise<void>;
+  getMission: (id: string) => Promise<Mission | null>;
+  
+  // FPF target management
+  addFPFTarget: (missionId: string, targetData: CreateFPFTargetData) => Promise<string>;
+  updateFPFTarget: (missionId: string, targetId: string, updates: Partial<FPFTarget>) => Promise<void>;
+  deleteFPFTarget: (missionId: string, targetId: string) => Promise<void>;
+
+  // Mission phase management
+  advancePhase: (missionId: string) => Promise<void>;
+  setPhase: (missionId: string, phase: MissionPhase) => Promise<void>;
 
   // Actions
   refreshData: () => Promise<void>;
@@ -60,6 +82,10 @@ export function AppProvider({ children }: AppProviderProps) {
   const [error, setError] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [hasUpdate, setHasUpdate] = useState(false);
+
+  // Mission state
+  const [currentMission, setCurrentMission] = useState<Mission | null>(null);
+  const [missions, setMissions] = useState<MissionSummary[]>([]);
 
   // Default calculator state
   const defaultCalculatorState: CalculatorState = {
@@ -104,6 +130,23 @@ export function AppProvider({ children }: AppProviderProps) {
     localStorage.removeItem('fdc-calculator-state');
   };
 
+  // Mission management functions
+  const loadMissionData = useCallback(async () => {
+    try {
+      const missionSummaries = await missionService.getMissionSummaries();
+      setMissions(missionSummaries);
+
+      // Load current mission if one is set
+      const currentMissionId = missionService.getCurrentMissionId();
+      if (currentMissionId) {
+        const mission = await missionService.getMission(currentMissionId);
+        setCurrentMission(mission);
+      }
+    } catch (err) {
+      console.warn('Failed to load mission data:', err);
+    }
+  }, []);
+
   const loadData = useCallback(async () => {
     try {
       // Initialize CSV data service
@@ -140,8 +183,11 @@ export function AppProvider({ children }: AppProviderProps) {
         setIsOffline(state.isOffline);
       });
 
-      // Load data
+      // Load ballistic data
       await loadData();
+
+      // Load mission data
+      await loadMissionData();
 
       // Prefetch additional data in background
       await swManager.prefetchData();
@@ -151,7 +197,7 @@ export function AppProvider({ children }: AppProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [loadData]);
+  }, [loadData, loadMissionData]);
 
   // Initialize app
   useEffect(() => {
@@ -223,6 +269,145 @@ export function AppProvider({ children }: AppProviderProps) {
     }
   };
 
+  const createMission = async (missionData: CreateMissionData): Promise<string> => {
+    try {
+      const missionId = await missionService.createMission(missionData);
+      await loadMissionData(); // Refresh mission list
+      return missionId;
+    } catch (err) {
+      throw new Error(`Failed to create mission: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const updateMission = async (id: string, updates: Partial<Mission>): Promise<void> => {
+    try {
+      await missionService.updateMission(id, updates);
+      await loadMissionData(); // Refresh mission list
+      
+      // Update current mission if it's the one being updated
+      if (currentMission?.id === id) {
+        const updatedMission = await missionService.getMission(id);
+        setCurrentMission(updatedMission);
+      }
+    } catch (err) {
+      throw new Error(`Failed to update mission: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const deleteMission = async (id: string): Promise<void> => {
+    try {
+      await missionService.deleteMission(id);
+      await loadMissionData(); // Refresh mission list
+      
+      // Clear current mission if it was deleted
+      if (currentMission?.id === id) {
+        setCurrentMission(null);
+      }
+    } catch (err) {
+      throw new Error(`Failed to delete mission: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const setCurrentMissionById = async (id: string | null): Promise<void> => {
+    try {
+      missionService.setCurrentMissionId(id);
+      
+      if (id) {
+        const mission = await missionService.getMission(id);
+        setCurrentMission(mission);
+      } else {
+        setCurrentMission(null);
+      }
+    } catch (err) {
+      throw new Error(`Failed to set current mission: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const getMission = async (id: string): Promise<Mission | null> => {
+    try {
+      return await missionService.getMission(id);
+    } catch (err) {
+      throw new Error(`Failed to get mission: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const addFPFTarget = async (missionId: string, targetData: CreateFPFTargetData): Promise<string> => {
+    try {
+      const targetId = await missionService.addFPFTarget(missionId, targetData);
+      await loadMissionData(); // Refresh mission list
+      
+      // Update current mission if it's the one being updated
+      if (currentMission?.id === missionId) {
+        const updatedMission = await missionService.getMission(missionId);
+        setCurrentMission(updatedMission);
+      }
+      
+      return targetId;
+    } catch (err) {
+      throw new Error(`Failed to add FPF target: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const updateFPFTarget = async (missionId: string, targetId: string, updates: Partial<FPFTarget>): Promise<void> => {
+    try {
+      await missionService.updateFPFTarget(missionId, targetId, updates);
+      await loadMissionData(); // Refresh mission list
+      
+      // Update current mission if it's the one being updated
+      if (currentMission?.id === missionId) {
+        const updatedMission = await missionService.getMission(missionId);
+        setCurrentMission(updatedMission);
+      }
+    } catch (err) {
+      throw new Error(`Failed to update FPF target: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const deleteFPFTarget = async (missionId: string, targetId: string): Promise<void> => {
+    try {
+      await missionService.deleteFPFTarget(missionId, targetId);
+      await loadMissionData(); // Refresh mission list
+      
+      // Update current mission if it's the one being updated
+      if (currentMission?.id === missionId) {
+        const updatedMission = await missionService.getMission(missionId);
+        setCurrentMission(updatedMission);
+      }
+    } catch (err) {
+      throw new Error(`Failed to delete FPF target: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const advancePhase = async (missionId: string): Promise<void> => {
+    try {
+      await missionService.advancePhase(missionId);
+      await loadMissionData(); // Refresh mission list
+      
+      // Update current mission if it's the one being updated
+      if (currentMission?.id === missionId) {
+        const updatedMission = await missionService.getMission(missionId);
+        setCurrentMission(updatedMission);
+      }
+    } catch (err) {
+      throw new Error(`Failed to advance phase: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const setPhase = async (missionId: string, phase: MissionPhase): Promise<void> => {
+    try {
+      await missionService.setPhase(missionId, phase);
+      await loadMissionData(); // Refresh mission list
+      
+      // Update current mission if it's the one being updated
+      if (currentMission?.id === missionId) {
+        const updatedMission = await missionService.getMission(missionId);
+        setCurrentMission(updatedMission);
+      }
+    } catch (err) {
+      throw new Error(`Failed to set phase: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
   const value: AppContextType = {
     fdService,
     mortarSystems,
@@ -234,9 +419,21 @@ export function AppProvider({ children }: AppProviderProps) {
     calculatorState,
     setCalculatorState,
     resetCalculatorState,
+    currentMission,
+    missions,
     refreshData,
     updateApp,
-    clearCache
+    clearCache,
+    createMission,
+    updateMission,
+    deleteMission,
+    setCurrentMission: setCurrentMissionById,
+    getMission,
+    addFPFTarget,
+    updateFPFTarget,
+    deleteFPFTarget,
+    advancePhase,
+    setPhase
   };
 
   return (

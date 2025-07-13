@@ -97,7 +97,7 @@ export function MGRSInput({
   };
 
   const getInputClasses = () => {
-    let classes = "w-full px-3 py-2 pr-10 border rounded-md focus:ring-2 focus:ring-blue-500 transition-all duration-200 font-mono text-sm ";
+    let classes = "w-full px-3 py-2 pr-10 border rounded-md focus:ring-2 focus:ring-blue-500 transition-all duration-200 font-mono text-sm text-gray-900 ";
     
     if (disabled) {
       classes += "bg-gray-100 cursor-not-allowed ";

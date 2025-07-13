@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
+import { useSEO, SEOConfig } from '../hooks/useSEO';
 
 export function LicensePage() {
+  useSEO(SEOConfig.license);
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="bg-white rounded-lg shadow-lg p-8">

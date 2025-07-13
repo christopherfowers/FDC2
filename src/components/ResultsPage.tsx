@@ -421,7 +421,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
                   value={rangeAdjustment || ''}
                   onChange={(e) => setRangeAdjustment(Number(e.target.value) || 0)}
                   placeholder="e.g., 100 (add), -50 (drop)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900"
                 />
                 <p className="text-xs text-gray-500 mt-1">Standard: "Add 100" or "Drop 50"</p>
               </div>
@@ -435,7 +435,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
                   value={directionAdjustment || ''}
                   onChange={(e) => setDirectionAdjustment(Number(e.target.value) || 0)}
                   placeholder="e.g., 50 (right), -30 (left)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900"
                 />
                 <p className="text-xs text-gray-500 mt-1">Standard: "Right 50" or "Left 30"</p>
               </div>
@@ -654,7 +654,7 @@ Time of Flight: ${result.timeOfFlightS}s`;
                   value={missionNotes}
                   onChange={(e) => setMissionNotes(e.target.value)}
                   placeholder="Add notes about this fire mission..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   rows={3}
                 />
               </div>
