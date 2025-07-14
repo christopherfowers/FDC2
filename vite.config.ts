@@ -1,10 +1,19 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    visualizer({
+      filename: 'dist/bundle-analysis.html',
+      open: false,
+      gzipSize: true,
+      brotliSize: true
+    })
+  ],
   server: {
     port: 5173,
     // Enable compression for dev server
@@ -28,11 +37,9 @@ export default defineConfig({
           // Split services for better caching
           services: [
             './src/services/mgrsService.ts', 
-            './src/services/fireDirectionService.ts'
-          ],
-          // Split database and heavy utilities
-          database: ['./src/services/mortarDatabase.ts'],
-          utils: ['./src/utils/dataCompression.ts']
+            './src/services/fireDirectionService.ts',
+            './src/services/csvDataService.ts'
+          ]
         },
         // Better chunk naming for caching
         chunkFileNames: (chunkInfo) => {
@@ -73,7 +80,6 @@ export default defineConfig({
   },
   // Optimize dependencies
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
-    exclude: ['sqlite3'] // Exclude server-only dependencies from client bundle
+    include: ['react', 'react-dom', 'react-router-dom']
   }
 })
