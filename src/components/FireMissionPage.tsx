@@ -23,6 +23,12 @@ export function FireMissionPage() {
   const [optimization, setOptimization] = useState<TacticalOptimization>('accuracy');
   const [selectedFPFTarget, setSelectedFPFTarget] = useState<string | null>(null);
 
+  // NATO 6-Line state
+  const [missionType, setMissionType] = useState<'adjust_fire' | 'fire_for_effect' | 'immediate_suppression'>('adjust_fire');
+  const [targetDescription, setTargetDescription] = useState('');
+  const [methodOfEngagement, setMethodOfEngagement] = useState('');
+  const [observerDirection, setObserverDirection] = useState<number | ''>('');
+
   // UI state
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -164,11 +170,11 @@ export function FireMissionPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              <i className="fas fa-crosshairs mr-3 text-orange-600"></i>
-              Fire Mission Calculations
+              <i className="fas fa-radio mr-3 text-red-600"></i>
+              NATO Call for Fire
             </h1>
             <p className="text-gray-600 mt-2">
-              Configure call for fire details and tactical optimization for{' '}
+              NATO 6-Line Call for Fire Format for{' '}
               <span className="font-semibold">{currentMission.name}</span>
             </p>
           </div>
@@ -200,6 +206,59 @@ export function FireMissionPage() {
             {error}
           </div>
         )}
+      </div>
+
+      {/* NATO 6-Line Quick Reference */}
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <i className="fas fa-list-ol mr-2 text-red-600"></i>
+          NATO 6-Line Call for Fire
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Line 1: Mission Type */}
+          <div className="p-4 border-l-4 border-red-600 bg-red-50">
+            <h3 className="font-semibold text-red-900 mb-2">
+              <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs mr-2">1</span>
+              Type of Mission
+            </h3>
+            <div className="grid grid-cols-1 gap-2">
+              {{
+                adjust_fire: 'Adjust Fire',
+                fire_for_effect: 'Fire For Effect',
+                immediate_suppression: 'Immediate Suppression'
+              }[missionType]}
+            </div>
+          </div>
+
+          {/* Line 3: Target Description */}
+          <div className="p-4 border-l-4 border-red-600 bg-red-50">
+            <h3 className="font-semibold text-red-900 mb-2">
+              <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs mr-2">3</span>
+              Target Description
+            </h3>
+            <div className="text-sm text-gray-800">
+              {targetDescription || 'No target description provided'}
+            </div>
+          </div>
+
+          {/* Line 6: Direction */}
+          <div className="p-4 border-l-4 border-red-600 bg-red-50">
+            <h3 className="font-semibold text-red-900 mb-2">
+              <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs mr-2">6</span>
+              Direction (mils)
+            </h3>
+            <div className="text-sm text-gray-800">
+              {observerDirection !== '' ? `${observerDirection} mils` : 'No direction provided'}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 p-3 bg-gray-100 rounded-lg">
+          <p className="text-sm text-gray-700">
+            <strong>Lines 2, 4, 5:</strong> Location (covered below), Method of Engagement (optional), and Fire Control (covered below)
+          </p>
+        </div>
       </div>
 
       {/* Target Information */}
