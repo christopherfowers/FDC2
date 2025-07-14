@@ -87,21 +87,21 @@ export function useSEO(seoData: SEOData) {
  */
 export const SEOConfig = {
   home: {
-    title: 'Home',
-    description: 'Professional mortar fire direction center for military and training applications. Calculate accurate ballistic solutions using MGRS coordinates with advanced mission planning capabilities.',
-    keywords: 'mortar calculator, fire direction center, FDC, ballistics, MGRS coordinates, military calculator, artillery, mortar systems',
+    title: 'Arma Reforger Mortar Calculator',
+    description: 'Professional Arma Reforger mortar calculator and fire direction center for gaming and training. Calculate accurate ballistic solutions using MGRS coordinates with advanced mission planning capabilities.',
+    keywords: 'arma reforger mortar calculator, arma mortar calculator, reforger FDC, gaming mortar calculator, mortar calculator, fire direction center, FDC, ballistics, MGRS coordinates, artillery, mortar systems, simulation',
     ogImage: '/web-app-manifest-512x512.png'
   },
   calculator: {
-    title: 'Quick Calculator',
-    description: 'Streamlined mortar fire solution calculator using MGRS coordinates. Fast and efficient ballistic calculations with essential features for immediate fire direction needs.',
-    keywords: 'quick calculator, mortar ballistics, MGRS calculator, artillery calculator, fire direction, ballistic calculations, streamlined FDC',
+    title: 'Quick Arma Reforger Mortar Calculator',
+    description: 'Streamlined Arma Reforger mortar fire solution calculator using MGRS coordinates. Fast and efficient ballistic calculations for gaming with essential features for immediate fire direction needs.',
+    keywords: 'arma reforger quick calculator, arma mortar ballistics, reforger MGRS calculator, gaming artillery calculator, fire direction, ballistic calculations, streamlined FDC',
     ogImage: '/web-app-manifest-512x512.png'
   },
   missionPrep: {
-    title: 'Mission Preparation',
-    description: 'Plan and prepare comprehensive fire missions with advanced FPF management, multi-gun calculations, and tactical positioning. Professional mission planning workflow for mortar operations.',
-    keywords: 'mission planning, FPF management, multi-gun calculations, tactical planning, mortar mission prep',
+    title: 'Arma Reforger Mission Preparation',
+    description: 'Plan and prepare comprehensive Arma Reforger fire missions with advanced FPF management, multi-gun calculations, and tactical positioning. Professional mission planning workflow for gaming mortar operations.',
+    keywords: 'arma reforger mission planning, reforger FPF management, gaming multi-gun calculations, tactical planning, mortar mission prep, simulation',
     ogImage: '/web-app-manifest-512x512.png'
   },
   history: {

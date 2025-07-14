@@ -11,7 +11,7 @@ export function Footer() {
               © {new Date().getFullYear()} Vince Browning. All rights reserved.
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Fire Direction Calculator (FDC2)
+              Arma Reforger Mortar Calculator & Fire Direction Center
             </p>
           </div>
           
@@ -41,10 +41,10 @@ export function Footer() {
           
           {/* Usage Notice */}
           <div className="text-center md:text-right">
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-300">
               Free to use. Not for redistribution.
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               For Arma Reforger gameplay only
             </p>
           </div>
@@ -52,7 +52,7 @@ export function Footer() {
         
         {/* Disclaimer */}
         <div className="border-t border-gray-700 mt-6 pt-6 text-center">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-400">
             This software is provided for educational and training purposes only. 
             Users are responsible for verifying all calculations and data accuracy.
           </p>

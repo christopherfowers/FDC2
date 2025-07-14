@@ -14,8 +14,8 @@ export function CalculatorPage() {
           <div className="flex items-center space-x-3">
             <FDCIcon size={32} />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Quick Calculator</h1>
-              <p className="text-sm text-gray-500 mt-1">Streamlined Fire Direction Center</p>
+              <h1 className="text-3xl font-bold text-gray-900">Arma Reforger Mortar Calculator</h1>
+              <p className="text-sm text-gray-600 mt-1">Streamlined Fire Direction Center</p>
             </div>
           </div>
           <i className="fas fa-calculator text-2xl text-blue-600"></i>

@@ -13,7 +13,7 @@ export function SettingsPage() {
             <FDCIcon size={32} />
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-              <p className="text-sm text-gray-500 mt-1">Fire Direction Center Configuration</p>
+              <p className="text-sm text-gray-600 mt-1">Fire Direction Center Configuration</p>
             </div>
           </div>
           <i className="fas fa-cog text-2xl text-blue-600"></i>

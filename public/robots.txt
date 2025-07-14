@@ -1,14 +1,24 @@
 User-agent: *
 Allow: /
 
-# Allow all crawlers access to CSS and JS files
+# Priority pages for Arma Reforger mortar calculator
+Allow: /calculator
+Allow: /mission/prep
+Allow: /ballistic-tables
+
+# Allow all crawlers access to assets
 Allow: /assets/
 Allow: /icons/
 Allow: /*.css
 Allow: /*.js
+Allow: /data/
 
-# Sitemap location
+# Sitemap location  
 Sitemap: https://fdc.tactical-apps.com/sitemap.xml
 
 # Crawl delay (be respectful)
 Crawl-delay: 1
+
+# Additional context for search engines
+# This is an Arma Reforger mortar calculator and fire direction center
+# Optimized for gaming, simulation, and training applications

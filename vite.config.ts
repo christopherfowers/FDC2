@@ -72,7 +72,7 @@ export default defineConfig({
   // Enable compression
   assetsInclude: ['**/*.csv'],
   define: {
-    __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '0.0.0')
+    __APP_VERSION__: JSON.stringify('2.0.0')
   },
   test: {
     globals: true,
