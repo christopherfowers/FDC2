@@ -1,21 +1,26 @@
-const CACHE_NAME = 'fdc-app-v1';
-const DATA_CACHE_NAME = 'fdc-data-v1';
+const CACHE_NAME = 'fdc-app-v2'; // Increment version for cache busting
+const DATA_CACHE_NAME = 'fdc-data-v2';
 
 // Static assets to cache
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
-  // Add your built assets here - these will be populated during build
+  '/favicon.ico',
+  '/favicon.svg'
 ];
 
-// CSV data files that should be cached
+// CSV data files that should be cached with compression
 const CACHEABLE_DATA = [
   '/data/M819_Smoke_Shell_Ballistics.csv',
   '/data/M821_HE_mortar_data.csv',
   '/data/M853A1_Illumination_Round_Ballistics.csv',
   '/data/M879_Practice_Round_Ballistics.csv'
 ];
+
+// Performance tracking
+let installTime = null;
+let activateTime = null;
 
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing');
