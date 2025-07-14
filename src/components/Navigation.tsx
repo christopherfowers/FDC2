@@ -54,7 +54,7 @@ export function Navigation() {
   const currentPhase = getMissionPhase();
 
   const navigationItems = [
-    { path: '/', icon: 'fas fa-home', label: 'Dashboard', title: 'Mission Dashboard' },
+    { path: '/dashboard', icon: 'fas fa-tachometer-alt', label: 'Dashboard', title: 'Mission Dashboard' },
     { path: '/calculator', icon: 'fas fa-calculator', label: 'Calculator', title: 'Quick Calculator' },
     { path: '/history', icon: 'fas fa-history', label: 'History', title: 'Mission History' },
     { path: '/ballistic-tables', icon: 'fas fa-table', label: 'Tables', title: 'Ballistic Tables' },
@@ -70,7 +70,7 @@ export function Navigation() {
             <Link 
               to="/" 
               className="flex items-center space-x-2 text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors"
-              title="Fire Direction Center - Home"
+              title="Fire Direction Center - Landing Page"
             >
               <FDCLogo size={28} textSize="xl" />
             </Link>

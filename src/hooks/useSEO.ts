@@ -92,6 +92,12 @@ export const SEOConfig = {
     keywords: 'arma reforger mortar calculator, arma mortar calculator, reforger FDC, gaming mortar calculator, mortar calculator, fire direction center, FDC, ballistics, MGRS coordinates, artillery, mortar systems, simulation',
     ogImage: '/web-app-manifest-512x512.png'
   },
+  dashboard: {
+    title: 'Mission Dashboard - Arma Reforger FDC',
+    description: 'Manage active fire missions, create new fire solutions, and track mission progress. Central command center for Arma Reforger mortar operations with comprehensive mission management tools.',
+    keywords: 'arma reforger mission dashboard, FDC mission management, fire solution tracking, gaming mission control, arma reforger missions, mortar command center',
+    ogImage: '/web-app-manifest-512x512.png'
+  },
   calculator: {
     title: 'Quick Arma Reforger Mortar Calculator',
     description: 'Streamlined Arma Reforger mortar fire solution calculator using MGRS coordinates. Fast and efficient ballistic calculations for gaming with essential features for immediate fire direction needs.',

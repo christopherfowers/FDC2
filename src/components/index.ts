@@ -7,6 +7,7 @@ export { PWAStatus, PWAInstallPrompt, AppSettings } from './PWAComponents';
 export { MissionPrepPage } from './MissionPrepPage';
 export { FireMissionPage } from './FireMissionPage';
 export { FireSolutionPage } from './FireSolutionPage';
+export { default as LandingPage } from './LandingPage';
 export { MissionDashboard } from './MissionDashboard';
 export { MissionTemplateModal } from './MissionTemplateModal';
 export { EnhancedHistoryPage } from './EnhancedHistoryPage';

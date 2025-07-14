@@ -3,23 +3,23 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"&gt;
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
     
-    <!-- Main Pages -->
+    <!-- Landing Page -->
     <url>
         <loc>https://fdc.tactical-apps.com/</loc>
-        <lastmod>2025-07-14</lastmod>
+        <lastmod>2025-01-19</lastmod>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
         <image:image>
             <image:loc>https://fdc.tactical-apps.com/web-app-manifest-512x512.png</image:loc>
-            <image:caption>Arma Reforger Mortar Calculator - Fire Direction Center</image:caption>
+            <image:caption>Arma Reforger Mortar Calculator - Fire Direction Center Landing Page</image:caption>
         </image:image>
     </url>
-    
+    <!-- Main Application Pages -->
     <url>
         <loc>https://fdc.tactical-apps.com/calculator</loc>
-        <lastmod>2025-07-14</lastmod>
+        <lastmod>2025-01-19</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.9</priority>
         <image:image>
@@ -30,7 +30,7 @@
     
     <url>
         <loc>https://fdc.tactical-apps.com/mission/prep</loc>
-        <lastmod>2025-07-14</lastmod>
+        <lastmod>2025-01-19</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>

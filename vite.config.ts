@@ -27,13 +27,31 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false, // Disable sourcemaps in production for smaller bundles
     minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace']
+      },
+      format: {
+        comments: false
+      }
+    },
     cssCodeSplit: true,
+    target: 'es2015', // Better compatibility and smaller bundles
     rollupOptions: {
       output: {
         manualChunks: {
-          // Split vendor libraries
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
+          // Split vendor libraries more granularly
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-router': ['react-router-dom'],
+          // Split UI components that are heavy
+          'components-heavy': [
+            './src/components/LandingPage.tsx',
+            './src/components/MissionDashboard.tsx',
+            './src/components/MissionPrepPage.tsx',
+            './src/components/FireMissionPageNATO.tsx'
+          ],
           // Split services for better caching
           services: [
             './src/services/mgrsService.ts', 
@@ -80,6 +98,14 @@ export default defineConfig({
   },
   // Optimize dependencies
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom']
+    include: ['react', 'react-dom', 'react-router-dom'],
+    exclude: ['@vite/client', '@vite/env']
+  },
+  
+  // Enable aggressive performance optimizations
+  esbuild: {
+    target: 'es2015',
+    legalComments: 'none',
+    treeShaking: true
   }
 })
