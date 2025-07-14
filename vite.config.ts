@@ -31,14 +31,22 @@ export default defineConfig({
       compress: {
         drop_console: true,
         drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace']
+        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.trace'],
+        passes: 2 // Multiple passes for better compression
       },
       format: {
         comments: false
+      },
+      mangle: {
+        properties: {
+          regex: /^_/
+        }
       }
     },
     cssCodeSplit: true,
+    cssMinify: true,
     target: 'es2015', // Better compatibility and smaller bundles
+    reportCompressedSize: false, // Skip gzip reporting for faster builds
     rollupOptions: {
       output: {
         manualChunks: {
