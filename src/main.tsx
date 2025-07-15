@@ -11,7 +11,6 @@ const resourceOptimizer = ResourceOptimizer.getInstance();
 
 // Setup service worker and optimizations
 resourceOptimizer.setupServiceWorker();
-resourceOptimizer.preloadCriticalResources();
 
 // Setup lazy loading after DOM is ready
 document.addEventListener('DOMContentLoaded', () => {

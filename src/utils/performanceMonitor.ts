@@ -148,7 +148,6 @@ class PerformanceMonitor {
 // Resource loading optimization
 export class ResourceOptimizer {
   private static instance: ResourceOptimizer;
-  private loadedResources = new Set<string>();
 
   public static getInstance(): ResourceOptimizer {
     if (!ResourceOptimizer.instance) {
@@ -179,27 +178,6 @@ export class ResourceOptimizer {
         imageObserver.observe(img);
       });
     }
-  }
-
-  /**
-   * Preload critical resources
-   */
-  public preloadCriticalResources(): void {
-    const criticalResources = [
-      '/js/vendor-[hash].js',
-      '/css/main-[hash].css'
-    ];
-
-    criticalResources.forEach(resource => {
-      if (!this.loadedResources.has(resource)) {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.href = resource;
-        link.as = resource.endsWith('.js') ? 'script' : 'style';
-        document.head.appendChild(link);
-        this.loadedResources.add(resource);
-      }
-    });
   }
 
   /**
