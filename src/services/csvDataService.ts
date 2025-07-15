@@ -86,13 +86,17 @@ class CSVDataService {
      */
     private async loadFromCSV(): Promise<void> {
         try {
+            console.log('🔄 Loading CSV files:', this.csvFiles);
+            
             // Fetch all CSV files
             const csvDataPromises = this.csvFiles.map(async (filename) => {
+                console.log(`📥 Fetching ${filename}...`);
                 const response = await fetch(`/data/${filename}`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch ${filename}: ${response.statusText}`);
                 }
                 const csvText = await response.text();
+                console.log(`✅ Loaded ${filename} (${csvText.length} chars)`);
                 return { filename, csvText };
             });
 
@@ -102,7 +106,7 @@ class CSVDataService {
             const allRecords: CSVRecord[] = [];
             for (const { filename, csvText } of csvData) {
                 const records = this.parseCSV(csvText);
-                console.log(`Loaded ${records.length} records from ${filename}`);
+                console.log(`📊 Parsed ${records.length} records from ${filename}`);
                 allRecords.push(...records);
             }
 
@@ -117,10 +121,10 @@ class CSVDataService {
                 ballisticData
             };
 
-            console.log(`CSV data loaded: ${systems.length} systems, ${rounds.length} rounds, ${ballisticData.length} ballistic entries`);
+            console.log(`✅ CSV data processed: ${systems.length} systems, ${rounds.length} rounds, ${ballisticData.length} ballistic entries`);
 
         } catch (error) {
-            console.error('Failed to load CSV data:', error);
+            console.error('❌ Failed to load CSV data:', error);
             throw error;
         }
     }
@@ -319,6 +323,148 @@ class CSVDataService {
     async getMortarRoundById(id: number): Promise<MortarRound | null> {
         await this.initialize();
         return this.cache?.rounds.find(round => round.id === id) || null;
+    }
+
+    /**
+     * Get fire solution for a specific round and range with interpolation
+     */
+    async getFireSolution(roundName: string, rangeM: number): Promise<{
+        rangeM: number;
+        elevationMils: number;
+        timeOfFlightS: number;
+        avgDispersionM: number;
+        chargeLevel: number;
+        interpolated: boolean;
+        interpolationMethod?: 'exact' | 'derivative' | 'linear';
+    }> {
+        await this.initialize();
+        
+        if (!this.cache) {
+            throw new Error('CSV data not loaded');
+        }
+
+        // Find the round by name
+        const round = this.cache.rounds.find(r => r.name === roundName);
+        if (!round) {
+            throw new Error(`Round ${roundName} not found`);
+        }
+
+        // Get ballistic data for this round (any compatible system)
+        const data = this.cache.ballisticData.filter(d => d.mortarRoundId === round.id);
+        
+        if (data.length === 0) {
+            throw new Error(`No ballistic data found for round ${roundName}`);
+        }
+
+        // Sort by range
+        data.sort((a, b) => a.rangeM - b.rangeM);
+
+        // Find exact match first
+        const exactMatch = data.find(d => d.rangeM === rangeM);
+        if (exactMatch) {
+            return {
+                rangeM: exactMatch.rangeM,
+                elevationMils: exactMatch.elevationMils,
+                timeOfFlightS: exactMatch.timeOfFlightS,
+                avgDispersionM: exactMatch.avgDispersionM,
+                chargeLevel: exactMatch.chargeLevel,
+                interpolated: false,
+                interpolationMethod: 'exact'
+            };
+        }
+
+        // Find bounds for interpolation
+        const lowerBound = data.filter(d => d.rangeM < rangeM).pop();
+        const upperBound = data.find(d => d.rangeM > rangeM);
+
+        if (!lowerBound || !upperBound) {
+            throw new Error(`Range ${rangeM}m is outside available data range (${data[0].rangeM}m - ${data[data.length - 1].rangeM}m)`);
+        }
+
+        // Use the same charge level for interpolation (prefer lower bound charge)
+        const targetCharge = lowerBound.chargeLevel;
+        const chargeData = data.filter(d => d.chargeLevel === targetCharge).sort((a, b) => a.rangeM - b.rangeM);
+        
+        const chargeLower = chargeData.filter(d => d.rangeM < rangeM).pop();
+        const chargeUpper = chargeData.find(d => d.rangeM > rangeM);
+
+        if (!chargeLower || !chargeUpper) {
+            // Fall back to cross-charge interpolation if needed
+            const deltaRange = rangeM - lowerBound.rangeM;
+            const rangeDiff = upperBound.rangeM - lowerBound.rangeM;
+            const factor = deltaRange / rangeDiff;
+
+            const elevationMils = Math.round(
+                lowerBound.elevationMils + (upperBound.elevationMils - lowerBound.elevationMils) * factor
+            );
+            const timeOfFlightS = Number(
+                (lowerBound.timeOfFlightS + (upperBound.timeOfFlightS - lowerBound.timeOfFlightS) * factor).toFixed(1)
+            );
+            const avgDispersionM = Number(
+                (lowerBound.avgDispersionM + (upperBound.avgDispersionM - lowerBound.avgDispersionM) * factor).toFixed(1)
+            );
+
+            return {
+                rangeM,
+                elevationMils,
+                timeOfFlightS,
+                avgDispersionM,
+                chargeLevel: lowerBound.chargeLevel,
+                interpolated: true,
+                interpolationMethod: 'linear'
+            };
+        }
+
+        // High-accuracy interpolation within same charge
+        const deltaRange = rangeM - chargeLower.rangeM;
+        const deltaRangeIncrements = deltaRange / 100; // Convert to 100m increments
+        
+        let elevationMils: number;
+        let timeOfFlightS: number;
+        let interpolationMethod: 'derivative' | 'linear' = 'linear';
+
+        // Use derivative-based interpolation if available
+        if (chargeLower.dElevPer100mMils !== null && chargeLower.dElevPer100mMils !== undefined) {
+            elevationMils = chargeLower.elevationMils + (chargeLower.dElevPer100mMils * deltaRangeIncrements);
+            elevationMils = Math.round(elevationMils);
+            interpolationMethod = 'derivative';
+        } else {
+            // Linear interpolation fallback
+            const rangeDiff = chargeUpper.rangeM - chargeLower.rangeM;
+            const factor = deltaRange / rangeDiff;
+            elevationMils = Math.round(
+                chargeLower.elevationMils + (chargeUpper.elevationMils - chargeLower.elevationMils) * factor
+            );
+        }
+
+        if (chargeLower.dTofPer100mS !== null && chargeLower.dTofPer100mS !== undefined) {
+            timeOfFlightS = chargeLower.timeOfFlightS + (chargeLower.dTofPer100mS * deltaRangeIncrements);
+            timeOfFlightS = Number(timeOfFlightS.toFixed(1));
+        } else {
+            // Linear interpolation fallback
+            const rangeDiff = chargeUpper.rangeM - chargeLower.rangeM;
+            const factor = deltaRange / rangeDiff;
+            timeOfFlightS = Number(
+                (chargeLower.timeOfFlightS + (chargeUpper.timeOfFlightS - chargeLower.timeOfFlightS) * factor).toFixed(1)
+            );
+        }
+
+        // Linear interpolation for dispersion (no derivative data)
+        const rangeDiff = chargeUpper.rangeM - chargeLower.rangeM;
+        const factor = deltaRange / rangeDiff;
+        const avgDispersionM = Number(
+            (chargeLower.avgDispersionM + (chargeUpper.avgDispersionM - chargeLower.avgDispersionM) * factor).toFixed(1)
+        );
+
+        return {
+            rangeM,
+            elevationMils,
+            timeOfFlightS,
+            avgDispersionM,
+            chargeLevel: targetCharge,
+            interpolated: true,
+            interpolationMethod
+        };
     }
 
     /**

@@ -73,6 +73,7 @@ export function FireMissionPageNATO() {
       setFOPosition(currentMission.initialFOPosition || '');
       // Set default round type to first available
       if (currentMission.availableRounds.length > 0 && !roundType) {
+        console.log('Setting default round type:', currentMission.availableRounds[0]);
         setRoundType(currentMission.availableRounds[0]);
       }
     }
@@ -190,6 +191,12 @@ export function FireMissionPageNATO() {
       return;
     }
 
+    // Additional validation to ensure roundType is not empty
+    if (!roundType || roundType === '') {
+      setError('Round type must be selected before continuing');
+      return;
+    }
+
     setIsSaving(true);
     setError(null);
 
@@ -200,6 +207,8 @@ export function FireMissionPageNATO() {
           currentPhase: 'solution' as const
         });
       }
+
+      console.log('Navigating with roundType:', roundType);
 
       // Navigate to fire solution page with fire mission data
       navigate('/mission/solution', {

@@ -149,19 +149,26 @@ export function AppProvider({ children }: AppProviderProps) {
 
   const loadData = useCallback(async () => {
     try {
-      // Initialize CSV data service
+      // Initialize CSV service - this loads all mortar systems, rounds, and ballistic data
       await csvDataService.initialize();
-
-      // Get data from CSV service
+      
+      // Get the loaded data
       const systems = await csvDataService.getAllMortarSystems();
       const rounds = await csvDataService.getAllMortarRounds();
       const ballisticData = await csvDataService.getAllMortarRoundData();
-
-      // Initialize fire direction service with CSV data
-      await fdService.initialize(systems, rounds, ballisticData);
-
+      
+      // Set data in context
       setMortarSystems(systems);
       setMortarRounds(rounds);
+
+      // Initialize fire direction service with all data
+      await fdService.initialize(systems, rounds, ballisticData);
+
+      console.log('✅ Data loaded successfully:', {
+        systems: systems.length,
+        rounds: rounds.length,
+        ballistics: ballisticData.length
+      });
 
     } catch (err) {
       throw new Error(`Failed to load data: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -223,18 +230,13 @@ export function AppProvider({ children }: AppProviderProps) {
       setIsLoading(true);
       setError(null);
 
-      // Force refresh CSV data
-      await csvDataService.initialize(true); // Force refresh
+      // Clear cached data
+      await csvDataService.clearCache();
 
-      // Get fresh data from CSV service
-      const systems = await csvDataService.getAllMortarSystems();
-      const rounds = await csvDataService.getAllMortarRounds();
-      const ballisticData = await csvDataService.getAllMortarRoundData();
+      // Reload all data
+      await loadData();
 
-      await fdService.initialize(systems, rounds, ballisticData);
-
-      setMortarSystems(systems);
-      setMortarRounds(rounds);
+      console.log('✅ Data refreshed successfully');
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to refresh data');

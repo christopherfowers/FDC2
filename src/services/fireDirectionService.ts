@@ -66,6 +66,11 @@ export class FireDirectionService {
     this.mortarSystems = systems;
     this.mortarRounds = rounds;
     this.ballisticData = ballistic;
+    console.log('🔧 FireDirectionService initialized with:', {
+      systems: systems.length,
+      rounds: rounds.length,
+      ballistics: ballistic.length
+    });
   }
 
   /**
@@ -96,9 +101,30 @@ export class FireDirectionService {
    * Get ballistic data for specific mortar system and round
    */
   getBallisticData(mortarSystemId: number, mortarRoundId: number): MortarRoundData[] {
-    return this.ballisticData.filter(
+    const filtered = this.ballisticData.filter(
       data => data.mortarSystemId === mortarSystemId && data.mortarRoundId === mortarRoundId
     ).sort((a, b) => a.rangeM - b.rangeM);
+    
+    if (filtered.length === 0) {
+      console.error('❌ No ballistic data found for:', {
+        mortarSystemId,
+        mortarRoundId,
+        totalBallisticEntries: this.ballisticData.length,
+        availableSystemIds: [...new Set(this.ballisticData.map(d => d.mortarSystemId))],
+        availableRoundIds: [...new Set(this.ballisticData.map(d => d.mortarRoundId))]
+      });
+    } else {
+      // Log a few sample entries to verify data integrity
+      console.log(`✅ Found ${filtered.length} ballistic entries for system ${mortarSystemId}, round ${mortarRoundId}`);
+      console.log('Sample entries:', filtered.slice(0, 3).map(d => ({
+        range: d.rangeM,
+        elevation: d.elevationMils,
+        charge: d.chargeLevel,
+        tof: d.timeOfFlightS
+      })));
+    }
+    
+    return filtered;
   }
 
   /**
@@ -111,17 +137,46 @@ export class FireDirectionService {
       return "Charge 0"; // Fallback
     }
 
-    // Find exact match or closest range
+    console.log(`🎯 Selecting charge for ${rangeM}m range`);
+
+    // Find exact match first
     const exactMatch = data.find(d => d.rangeM === rangeM);
     if (exactMatch) {
+      console.log(`✅ Exact match: Charge ${exactMatch.chargeLevel} for ${rangeM}m`);
       return `Charge ${exactMatch.chargeLevel}`;
     }
 
-    // Find the closest data point
+    // Group data by charge level and find which charges can reach the target
+    const chargeGroups = new Map<number, MortarRoundData[]>();
+    data.forEach(d => {
+      if (!chargeGroups.has(d.chargeLevel)) {
+        chargeGroups.set(d.chargeLevel, []);
+      }
+      chargeGroups.get(d.chargeLevel)!.push(d);
+    });
+
+    // Find charge levels that can reach this range
+    const viableCharges = Array.from(chargeGroups.entries()).filter(([, chargeData]) => {
+      const minRange = Math.min(...chargeData.map(d => d.rangeM));
+      const maxRange = Math.max(...chargeData.map(d => d.rangeM));
+      return rangeM >= minRange && rangeM <= maxRange;
+    });
+
+    if (viableCharges.length > 0) {
+      // Select the most efficient charge (lowest) that can reach the target
+      const selectedCharge = viableCharges.reduce((best, curr) => 
+        curr[0] < best[0] ? curr : best
+      );
+      console.log(`🎯 Optimal charge: Charge ${selectedCharge[0]} can reach ${rangeM}m`);
+      return `Charge ${selectedCharge[0]}`;
+    }
+
+    // Fallback to closest range if no charge can perfectly reach target
     const closest = data.reduce((prev, curr) => 
       Math.abs(curr.rangeM - rangeM) < Math.abs(prev.rangeM - rangeM) ? curr : prev
     );
 
+    console.log(`📊 Fallback closest match: Charge ${closest.chargeLevel} for ${closest.rangeM}m (target: ${rangeM}m)`);
     return `Charge ${closest.chargeLevel}`;
   }
 
@@ -252,12 +307,39 @@ export class FireDirectionService {
       };
     }
 
-    // Find the closest lower bound data point for interpolation
-    const lowerBound = data.filter(d => d.rangeM < rangeM).pop();
-    const upperBound = data.find(d => d.rangeM > rangeM);
+    // Find the optimal charge level that can reach this range
+    // Group data by charge level and find which charges can reach the target
+    const chargeGroups = new Map<number, MortarRoundData[]>();
+    data.forEach(d => {
+      if (!chargeGroups.has(d.chargeLevel)) {
+        chargeGroups.set(d.chargeLevel, []);
+      }
+      chargeGroups.get(d.chargeLevel)!.push(d);
+    });
+
+    // Find charge levels that can reach this range
+    const viableCharges = Array.from(chargeGroups.entries()).filter(([, chargeData]) => {
+      const minRange = Math.min(...chargeData.map(d => d.rangeM));
+      const maxRange = Math.max(...chargeData.map(d => d.rangeM));
+      return rangeM >= minRange && rangeM <= maxRange;
+    });
+
+    if (viableCharges.length === 0) {
+      throw new Error(`Range ${rangeM}m is outside available ballistic data range for all charges`);
+    }
+
+    // Select the most efficient charge (lowest) that can reach the target
+    const selectedCharge = viableCharges.reduce((best, curr) => 
+      curr[0] < best[0] ? curr : best
+    );
+    const chargeData = selectedCharge[1].sort((a, b) => a.rangeM - b.rangeM);
+
+    // Find the closest lower bound and upper bound within the selected charge
+    const lowerBound = chargeData.filter(d => d.rangeM < rangeM).pop();
+    const upperBound = chargeData.find(d => d.rangeM > rangeM);
 
     if (!lowerBound || !upperBound) {
-      throw new Error(`Range ${rangeM}m is outside available ballistic data range`);
+      throw new Error(`Cannot interpolate within Charge ${selectedCharge[0]} for range ${rangeM}m`);
     }
 
     const deltaRange = rangeM - lowerBound.rangeM;

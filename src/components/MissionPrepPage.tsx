@@ -68,7 +68,7 @@ export function MissionPrepPage() {
     }
   }, [selectedSystem, mortarSystems]);
 
-  // Update available rounds when system changes
+  // Update available rounds when system changes (for backend storage)
   useEffect(() => {
     if (selectedSystem) {
       const system = mortarSystems.find(s => s.id.toString() === selectedSystem);
@@ -531,35 +531,6 @@ export function MissionPrepPage() {
                 })()}
               </div>
             )}
-          </div>
-
-          {/* Available Rounds */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Available Ammunition Types
-            </label>
-            <div className="border border-gray-300 rounded-md p-3 bg-white text-gray-900 max-h-40 overflow-y-auto" style={{backgroundColor: 'white', color: '#111827'}}>
-              {availableRounds.length > 0 ? (
-                <div className="space-y-2">
-                  {availableRounds.map(roundId => {
-                    const round = mortarRounds.find(r => r.id.toString() === roundId);
-                    return round ? (
-                      <div key={roundId} className="flex items-center justify-between text-sm text-gray-900" style={{color: '#111827'}}>
-                        <span className="font-medium text-gray-900" style={{color: '#111827'}}>{round.name}</span>
-                        <span className="text-gray-600" style={{color: '#4B5563'}}>({round.roundType})</span>
-                      </div>
-                    ) : null;
-                  })}
-                </div>
-              ) : (
-                <p className="text-gray-600 text-sm" style={{color: '#4B5563'}}>
-                  {selectedSystem ? 'No compatible rounds found' : 'Select a mortar system first'}
-                </p>
-              )}
-            </div>
-            <p className="mt-1 text-xs text-gray-500">
-              Automatically populated based on selected mortar system
-            </p>
           </div>
         </div>
       </div>

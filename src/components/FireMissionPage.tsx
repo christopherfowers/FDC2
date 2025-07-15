@@ -9,7 +9,8 @@ export function FireMissionPage() {
   const { 
     currentMission,
     updateMission,
-    isLoading 
+    isLoading,
+    mortarRounds 
   } = useApp();
 
   // Form state
@@ -18,11 +19,11 @@ export function FireMissionPage() {
   const [fireControl, setFireControl] = useState<FireControl>('fire_when_ready');
   const [numberOfRounds, setNumberOfRounds] = useState(1);
   const [optimization, setOptimization] = useState<TacticalOptimization>('accuracy');
+  const [selectedRoundType, setSelectedRoundType] = useState('');
 
   // NATO 6-Line state
   const [missionType, setMissionType] = useState<'adjust_fire' | 'fire_for_effect' | 'immediate_suppression'>('adjust_fire');
   const [targetDescription, setTargetDescription] = useState('');
-  const [methodOfEngagement, setMethodOfEngagement] = useState('');
   const [observerDirection, setObserverDirection] = useState<number | ''>('');
 
   // UI state
@@ -35,8 +36,12 @@ export function FireMissionPage() {
   useEffect(() => {
     if (currentMission) {
       setFOPosition(currentMission.initialFOPosition || '');
+      // Set default round if available
+      if (currentMission.availableRounds.length > 0 && !selectedRoundType) {
+        setSelectedRoundType(currentMission.availableRounds[0]);
+      }
     }
-  }, [currentMission]);
+  }, [currentMission, selectedRoundType]);
 
   // Redirect if no mission
   useEffect(() => {
@@ -66,12 +71,8 @@ export function FireMissionPage() {
       }
     }
 
-    if (!methodOfEngagement) {
-      errors.methodOfEngagement = 'Method of engagement is required';
-    }
-
-    if (numberOfRounds < 1 || numberOfRounds > 999) {
-      errors.numberOfRounds = 'Number of rounds must be between 1 and 999';
+    if (!selectedRoundType) {
+      errors.selectedRoundType = 'Round type selection is required';
     }
 
     setValidationErrors(errors);
@@ -104,8 +105,8 @@ export function FireMissionPage() {
           optimization,
           missionType,
           targetDescription,
-          methodOfEngagement,
-          observerDirection
+          observerDirection,
+          roundType: selectedRoundType
         }
       });
     } catch (err) {
@@ -290,36 +291,10 @@ export function FireMissionPage() {
             </div>
           </div>
 
-          {/* Line 4: Method of Engagement */}
-          <div className="flex items-start space-x-4 p-4 border border-orange-200 rounded-lg bg-orange-50">
-            <div className="flex-shrink-0">
-              <span className="flex items-center justify-center w-8 h-8 bg-orange-600 text-white rounded-full font-semibold text-sm">4</span>
-            </div>
-            <div className="flex-grow min-w-0">
-              <h3 className="font-semibold text-orange-900 mb-2">Method of Engagement *</h3>
-              <select
-                value={methodOfEngagement}
-                onChange={(e) => setMethodOfEngagement(e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 bg-white ${
-                  validationErrors.methodOfEngagement ? 'border-red-400' : 'border-gray-300'
-                }`}
-              >
-                <option value="">Select method of engagement...</option>
-                <option value="high_explosive">High Explosive</option>
-                <option value="smoke">Smoke</option>
-                <option value="illumination">Illumination</option>
-                <option value="white_phosphorus">White Phosphorus</option>
-              </select>
-              {validationErrors.methodOfEngagement && (
-                <p className="mt-1 text-sm text-red-600">{validationErrors.methodOfEngagement}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Line 5: Method of Fire and Control */}
+          {/* Line 4: Method of Fire and Control */}
           <div className="flex items-start space-x-4 p-4 border border-red-200 rounded-lg bg-red-50">
             <div className="flex-shrink-0">
-              <span className="flex items-center justify-center w-8 h-8 bg-red-600 text-white rounded-full font-semibold text-sm">5</span>
+              <span className="flex items-center justify-center w-8 h-8 bg-red-600 text-white rounded-full font-semibold text-sm">4</span>
             </div>
             <div className="flex-grow min-w-0">
               <h3 className="font-semibold text-red-900 mb-2">Method of Fire and Control</h3>
@@ -352,14 +327,38 @@ export function FireMissionPage() {
                     <p className="mt-1 text-xs text-red-600">{validationErrors.numberOfRounds}</p>
                   )}
                 </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-red-800 mb-1">Round Type</label>
+                  <select
+                    value={selectedRoundType}
+                    onChange={(e) => setSelectedRoundType(e.target.value)}
+                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white text-sm ${
+                      validationErrors.selectedRoundType ? 'border-red-400' : 'border-gray-300'
+                    }`}
+                  >
+                    <option value="">Select Round Type</option>
+                    {currentMission?.availableRounds.map(roundId => {
+                      const round = mortarRounds.find(r => r.id.toString() === roundId);
+                      return round ? (
+                        <option key={round.id} value={round.id.toString()}>
+                          {round.name} ({round.roundType})
+                        </option>
+                      ) : null;
+                    })}
+                  </select>
+                  {validationErrors.selectedRoundType && (
+                    <p className="mt-1 text-xs text-red-600">{validationErrors.selectedRoundType}</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Line 6: Direction */}
+          {/* Line 5: Direction */}
           <div className="flex items-start space-x-4 p-4 border border-indigo-200 rounded-lg bg-indigo-50">
             <div className="flex-shrink-0">
-              <span className="flex items-center justify-center w-8 h-8 bg-indigo-600 text-white rounded-full font-semibold text-sm">6</span>
+              <span className="flex items-center justify-center w-8 h-8 bg-indigo-600 text-white rounded-full font-semibold text-sm">5</span>
             </div>
             <div className="flex-grow min-w-0">
               <h3 className="font-semibold text-indigo-900 mb-2">Direction (Observer to Target)</h3>
@@ -410,9 +409,8 @@ export function FireMissionPage() {
             <div><strong>Line 1:</strong> {missionType ? missionType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not set'}</div>
             <div><strong>Line 2:</strong> {targetGrid || 'Target grid not set'}</div>
             <div><strong>Line 3:</strong> {targetDescription || 'No description'}</div>
-            <div><strong>Line 4:</strong> {methodOfEngagement ? methodOfEngagement.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not selected'}</div>
-            <div><strong>Line 5:</strong> {fireControl === 'fire_when_ready' ? 'Fire When Ready' : 'At My Command'} • {numberOfRounds || '0'} rounds</div>
-            <div><strong>Line 6:</strong> {observerDirection ? `${observerDirection} mils` : 'Direction not set'}</div>
+            <div><strong>Line 4:</strong> {fireControl === 'fire_when_ready' ? 'Fire When Ready' : 'At My Command'} • {numberOfRounds || '0'} rounds</div>
+            <div><strong>Line 5:</strong> {observerDirection ? `${observerDirection} mils` : 'Direction not set'}</div>
           </div>
         </div>
       </div>

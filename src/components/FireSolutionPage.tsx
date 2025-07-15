@@ -58,11 +58,18 @@ export function FireSolutionPage() {
     setCalculationError(null);
 
     try {
+      console.log('Fire solution calculation - received state:', state);
+      console.log('Available mortar rounds:', mortarRounds.map(r => ({ id: r.id, name: r.name })));
+      console.log('Looking for round with ID:', state.roundType);
+      
       // Get the selected round data
       const selectedRound = mortarRounds.find(r => r.id.toString() === state.roundType);
       if (!selectedRound) {
-        throw new Error('Selected round type not found');
+        console.error('Round not found - roundType:', state.roundType, 'Available rounds:', mortarRounds);
+        throw new Error(`Selected round type not found. Received: "${state.roundType}"`);
       }
+
+      console.log('Selected round found:', selectedRound);
 
       // Map optimization to FireMissionMethod
       const methodMap: Record<string, FireMissionMethod> = {
@@ -73,9 +80,20 @@ export function FireSolutionPage() {
         'efficiency': 'efficiency'
       };
 
+      // Get mortar position from mission
+      const mortarPosition = currentMission.mortarPosition;
+      if (!mortarPosition) {
+        throw new Error('Mortar position not set in mission. Please return to mission prep and set mortar position.');
+      }
+
+      console.log('Calculating fire solution:');
+      console.log('  Mortar Position:', mortarPosition);
+      console.log('  Target Grid:', state.targetGrid);
+      console.log('  FO Position:', state.foPosition);
+
       // Calculate complete firing solution using initialized service from context
       const result = fdService.calculateCompleteFiringSolution(
-        state.foPosition,
+        mortarPosition,  // Use mortar position, not FO position
         state.targetGrid,
         parseInt(currentMission.selectedSystem),
         selectedRound.id,
