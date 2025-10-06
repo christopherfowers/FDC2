@@ -2,6 +2,7 @@ export interface MGRSCoordinate {
   grid: string;
   easting: number;
   northing: number;
+  elevation?: number;  // meters above sea level (optional)
   zone?: number;
   band?: string;
   square?: string;
@@ -12,6 +13,17 @@ export interface FireMissionData {
   azimuthMils: number;
   backAzimuthMils: number;
   distanceMeters: number;
+  elevationDifference?: number;  // vertical height difference in meters
+  slopeDegrees?: number;         // angle of slope
+  slopeMils?: number;            // angle of slope in mils
+}
+
+export interface ElevationData {
+  horizontalDistance: number;    // ground distance in meters
+  slopeDistance: number;         // actual line-of-sight distance in meters
+  elevationAngleDegrees: number; // vertical angle
+  elevationAngleMils: number;    // vertical angle in mils
+  heightDifference: number;      // target height - gun height
 }
 
 export class MGRSService {
@@ -229,6 +241,80 @@ export class MGRSService {
       azimuthMils,
       backAzimuthMils,
       distanceMeters
+    };
+  }
+
+  /**
+   * Calculate elevation data between two positions with altitude
+   * Handles terrain elevation differences for accurate ballistic calculations
+   */
+  static calculateElevationData(
+    gunElevationM: number,
+    targetElevationM: number,
+    horizontalDistanceM: number
+  ): ElevationData {
+    const heightDifference = targetElevationM - gunElevationM;
+    
+    // Calculate slope distance (hypotenuse)
+    const slopeDistance = Math.sqrt(
+      Math.pow(horizontalDistanceM, 2) + Math.pow(heightDifference, 2)
+    );
+    
+    // Calculate elevation angle in radians
+    const elevationAngleRad = Math.atan2(heightDifference, horizontalDistanceM);
+    
+    // Convert to degrees and milliradians
+    // Note: Artillery uses milliradians (1/1000 radian), not NATO mils (6400 per circle)
+    const elevationAngleDegrees = (elevationAngleRad * 180) / Math.PI;
+    const elevationAngleMils = Math.round(elevationAngleRad * 1000);
+    
+    return {
+      horizontalDistance: horizontalDistanceM,
+      slopeDistance,
+      elevationAngleDegrees,
+      elevationAngleMils,
+      heightDifference
+    };
+  }
+
+  /**
+   * Enhanced fire mission calculation with elevation support
+   * Returns complete fire mission data including terrain elevation effects
+   */
+  static calculateFireMissionWithElevation(
+    fromGrid: string,
+    toGrid: string,
+    fromElevationM?: number,
+    toElevationM?: number
+  ): FireMissionData & { elevationData?: ElevationData } {
+    const azimuthMils = this.getAzimuthMils(fromGrid, toGrid);
+    const backAzimuthMils = this.getBackAzimuthMils(azimuthMils);
+    const horizontalDistance = this.getDistance(fromGrid, toGrid);
+    
+    // If both elevations provided, calculate elevation effects
+    if (fromElevationM !== undefined && toElevationM !== undefined) {
+      const elevationData = this.calculateElevationData(
+        fromElevationM,
+        toElevationM,
+        horizontalDistance
+      );
+      
+      return {
+        azimuthMils,
+        backAzimuthMils,
+        distanceMeters: horizontalDistance,
+        elevationDifference: elevationData.heightDifference,
+        slopeDegrees: elevationData.elevationAngleDegrees,
+        slopeMils: elevationData.elevationAngleMils,
+        elevationData
+      };
+    }
+    
+    // No elevation data - standard calculation
+    return {
+      azimuthMils,
+      backAzimuthMils,
+      distanceMeters: horizontalDistance
     };
   }
 

@@ -4,6 +4,7 @@ import { useApp } from '../contexts/AppContext';
 import { MGRSService } from '../services/mgrsService';
 import type { FireMissionMethod } from '../services/fireDirectionService';
 import { MGRSInput, validateMGRSInput } from './MGRSInput';
+import { ElevationInput } from './ElevationInput';
 import { fireMissionHistoryService } from '../services/fireMissionHistoryService';
 import type { FireMissionRecord } from '../services/fireMissionHistoryService';
 
@@ -46,7 +47,9 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
     directionAdjustmentMils,
     notes,
     fireMethod,
-    maxDispersion
+    maxDispersion,
+    gunElevationM,
+    targetElevationM
   } = calculatorState;
 
   // Calculate target grid from FO data if available
@@ -206,7 +209,9 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
           dirAdj,
           {
             method: fireMethod,
-            maxDispersion: maxDispersion
+            maxDispersion: maxDispersion,
+            gunElevationM: gunElevationM,
+            targetElevationM: targetElevationM
           }
         );
       } else {
@@ -218,7 +223,9 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
           Number(selectedRound)!,
           {
             method: fireMethod,
-            maxDispersion: maxDispersion
+            maxDispersion: maxDispersion,
+            gunElevationM: gunElevationM,
+            targetElevationM: targetElevationM
           }
         );
       }
@@ -337,13 +344,23 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
               <i className="fas fa-crosshairs mr-2"></i>
               Step 1: Mortar Position (Required)
             </h3>
-            <MGRSInput
-              value={mortarGrid}
-              onChange={(value) => setCalculatorState({ mortarGrid: value })}
-              label="Mortar Position (MGRS)"
-              icon={<i className="fas fa-crosshairs text-green-600"></i>}
-              placeholder="e.g., 1000010000"
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <MGRSInput
+                value={mortarGrid}
+                onChange={(value) => setCalculatorState({ mortarGrid: value })}
+                label="Mortar Position (MGRS)"
+                icon={<i className="fas fa-crosshairs text-green-600"></i>}
+                placeholder="e.g., 1000010000"
+              />
+              <ElevationInput
+                value={gunElevationM}
+                onChange={(value) => setCalculatorState({ gunElevationM: value })}
+                label="Gun Elevation (Optional)"
+                placeholder="e.g., 150"
+                icon="fa-mountain"
+                helpText="Enter the altitude of your mortar position in meters above sea level. This is used to calculate accurate firing solutions for targets at different elevations. Leave blank if unknown or on flat terrain."
+              />
+            </div>
             {validationErrors.mortarGrid && (
               <p className="text-red-500 text-sm mt-1">{validationErrors.mortarGrid}</p>
             )}
@@ -458,13 +475,23 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
                     : "Enter target grid manually, or use FO data above to calculate automatically:"
                   }
                 </p>
-                <MGRSInput
-                  value={targetGrid}
-                  onChange={(value) => setCalculatorState({ targetGrid: value })}
-                  label="Target Grid (MGRS)"
-                  icon={<i className="fas fa-bullseye text-red-600"></i>}
-                  placeholder="e.g., 1200011000"
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <MGRSInput
+                    value={targetGrid}
+                    onChange={(value) => setCalculatorState({ targetGrid: value })}
+                    label="Target Grid (MGRS)"
+                    icon={<i className="fas fa-bullseye text-red-600"></i>}
+                    placeholder="e.g., 1200011000"
+                  />
+                  <ElevationInput
+                    value={targetElevationM}
+                    onChange={(value) => setCalculatorState({ targetElevationM: value })}
+                    label="Target Elevation (Optional)"
+                    placeholder="e.g., 250"
+                    icon="fa-mountain"
+                    helpText="Enter the altitude of the target in meters above sea level. Used with gun elevation to calculate slope corrections. Leave blank if unknown or on flat terrain."
+                  />
+                </div>
                 {validationErrors.targetGrid && (
                   <p className="text-red-500 text-sm mt-1">{validationErrors.targetGrid}</p>
                 )}

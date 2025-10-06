@@ -173,33 +173,87 @@ export function FireSolutionPage() {
     }
   }, [state, currentMission, calculateFireSolution]);
 
-  const applyCorrection = () => {
-    if (!fireSolution) return;
+  const applyCorrection = async () => {
+    if (!fireSolution || !state || !currentMission) return;
 
-    const correctedSolution: FireSolution = {
-      ...fireSolution,
-      rangeMeters: fireSolution.rangeMeters + rangeCorrection,
-      elevationMils: fireSolution.elevationMils + (rangeCorrection * 0.1), // Simplified correction
-      azimuthMils: fireSolution.azimuthMils + directionCorrection
-    };
+    setIsCalculating(true);
+    setCalculationError(null);
 
-    const correction = {
-      id: Date.now().toString(),
-      timestamp: new Date(),
-      rangeCorrection,
-      directionCorrection,
-      adjustedSolution: correctedSolution,
-      notes: correctionNotes
-    };
+    try {
+      console.log('Applying FO correction:');
+      console.log('  Range adjustment:', rangeCorrection, 'm');
+      console.log('  Direction adjustment:', directionCorrection, 'mils');
 
-    setAppliedCorrections(prev => [...prev, correction]);
-    setFireSolution(correctedSolution);
-    generateCommandScript(correctedSolution, mortarRounds.find(r => r.id.toString() === state.roundType)?.name || '');
+      // Get the selected round data
+      const selectedRound = mortarRounds.find(r => r.id.toString() === state.roundType);
+      if (!selectedRound) {
+        throw new Error(`Selected round type not found: "${state.roundType}"`);
+      }
 
-    // Reset correction inputs
-    setRangeCorrection(0);
-    setDirectionCorrection(0);
-    setCorrectionNotes('');
+      // Map optimization to FireMissionMethod
+      const methodMap: Record<string, FireMissionMethod> = {
+        'speed': 'speed',
+        'accuracy': 'standard',
+        'dispersion': 'area_target',
+        'high_angle': 'high_angle',
+        'efficiency': 'efficiency'
+      };
+
+      // Get mortar position from mission
+      const mortarPosition = currentMission.mortarPosition;
+      if (!mortarPosition) {
+        throw new Error('Mortar position not set in mission');
+      }
+
+      // Calculate NEW firing solution with FO adjustments
+      // This calculates where the adjusted target would be from FO's perspective,
+      // then computes a complete new firing solution from gun position to that adjusted target
+      const result = fdService.calculateAdjustedFiringSolution(
+        state.foPosition,           // FO position for calculating adjustment
+        mortarPosition,             // Gun position for final firing solution
+        state.targetGrid,           // Original target
+        parseInt(currentMission.selectedSystem),
+        selectedRound.id,
+        rangeCorrection,            // FO's range adjustment (meters)
+        directionCorrection,        // FO's direction adjustment (mils)
+        { method: methodMap[state.optimization] }
+      );
+
+      const correctedSolution: FireSolution = {
+        azimuthMils: result.azimuthMils,
+        elevationMils: result.elevationMils,
+        chargeLevel: result.chargeLevel,
+        timeOfFlight: result.timeOfFlightS,
+        rangeMeters: result.targetDistance
+      };
+
+      const correction = {
+        id: Date.now().toString(),
+        timestamp: new Date(),
+        rangeCorrection,
+        directionCorrection,
+        adjustedSolution: correctedSolution,
+        notes: correctionNotes
+      };
+
+      setAppliedCorrections(prev => [...prev, correction]);
+      setFireSolution(correctedSolution);
+      generateCommandScript(correctedSolution, selectedRound.name);
+
+      // Reset correction inputs
+      setRangeCorrection(0);
+      setDirectionCorrection(0);
+      setCorrectionNotes('');
+
+      console.log('FO correction applied successfully');
+      console.log('New solution:', correctedSolution);
+
+    } catch (error) {
+      console.error('Error applying FO correction:', error);
+      setCalculationError(error instanceof Error ? error.message : 'Failed to apply FO correction');
+    } finally {
+      setIsCalculating(false);
+    }
   };
 
   const saveMissionComplete = async () => {
@@ -389,10 +443,17 @@ export function FireSolutionPage() {
 
           {/* FO Corrections */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              <i className="fas fa-adjust mr-2 text-orange-600"></i>
-              Forward Observer Corrections
-            </h2>
+            <div className="mb-4">
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                <i className="fas fa-adjust mr-2 text-orange-600"></i>
+                Forward Observer Corrections
+              </h2>
+              <p className="text-sm text-gray-600">
+                Apply FO adjustments to recalculate a new firing solution. 
+                Corrections are made from the FO's perspective and will generate 
+                new gun data based on the adjusted target location.
+              </p>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
@@ -439,11 +500,11 @@ export function FireSolutionPage() {
 
             <button
               onClick={applyCorrection}
-              disabled={rangeCorrection === 0 && directionCorrection === 0}
+              disabled={isCalculating || (rangeCorrection === 0 && directionCorrection === 0)}
               className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <i className="fas fa-plus mr-2"></i>
-              Apply Correction
+              <i className={`fas ${isCalculating ? 'fa-spinner fa-spin' : 'fa-plus'} mr-2`}></i>
+              {isCalculating ? 'Calculating...' : 'Apply Correction'}
             </button>
 
             {/* Applied Corrections History */}

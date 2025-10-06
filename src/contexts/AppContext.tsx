@@ -21,6 +21,8 @@ interface CalculatorState {
   notes: string;
   fireMethod: FireMissionMethod;
   maxDispersion?: number;
+  gunElevationM?: number;       // Gun altitude in meters
+  targetElevationM?: number;    // Target altitude in meters
 }
 
 interface AppContextType {

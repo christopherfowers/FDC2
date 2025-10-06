@@ -7,8 +7,18 @@ A modern Progressive Web Application for military fire direction calculations, b
 ### 🎯 Fire Mission Calculator
 - Calculate firing solutions using MGRS coordinates
 - Support for observer, mortar, and target positions
-- Real-time ballistic calculations with interpolation
+- **NEW:** Terrain elevation support for accurate uphill/downhill firing
+- Real-time ballistic calculations with derivative interpolation
 - Multiple ammunition types from static CSV data
+- FO adjustments with automatic recalculation
+
+### 🏔️ Terrain Elevation Support
+- Optional gun and target elevation inputs
+- Automatic slope angle calculations
+- Corrected tube elevation for height differences
+- Supports uphill and downhill engagements
+- Military-grade trigonometric accuracy
+- See [ELEVATION_SUPPORT.md](./ELEVATION_SUPPORT.md) for details
 
 ### 🚀 Progressive Web App
 - Full offline functionality with service worker caching
@@ -50,16 +60,23 @@ npm install
 3. Start the development environment:
 ```bash
 npm run dev
+# or simply
+npm start
+# or
+npm run
 ```
 
 This will start the frontend development server on port 5173.
 
 ### Available Scripts
 
-- `npm run dev` - Start frontend development server
+- `npm run dev` / `npm start` / `npm run` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build locally
+- `npm test` - Run unit tests with Vitest
+- `npm run test:ui` - Run tests with UI
 - `npm run docker:build` - Build Docker image
 - `npm run docker:run` - Run Docker container
-- `npm run test` - Run unit tests
 
 ## Architecture
 

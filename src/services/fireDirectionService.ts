@@ -25,6 +25,8 @@ export interface FireMissionOptions {
   method?: FireMissionMethod;
   preferredCharge?: number;        // Optional charge preference
   maxDispersion?: number;          // Max acceptable dispersion for area targets
+  gunElevationM?: number;          // Gun altitude in meters above sea level
+  targetElevationM?: number;       // Target altitude in meters above sea level
 }
 
 export interface CompleteFiringSolution {
@@ -40,6 +42,17 @@ export interface CompleteFiringSolution {
   timeOfFlightS: number;
   avgDispersionM: number;
   interpolated: boolean;
+  
+  // Elevation corrections (if terrain elevation provided)
+  terrainElevationCorrection?: {
+    gunElevationM: number;
+    targetElevationM: number;
+    heightDifferenceM: number;
+    slopeAngleMils: number;
+    correctedElevationMils: number;  // tube elevation adjusted for terrain
+    horizontalRangeM: number;        // ground distance
+    slopeRangeM: number;             // actual line-of-sight distance
+  };
   
   // System info
   mortarSystem: MortarSystem;
@@ -409,8 +422,22 @@ export class FireDirectionService {
       throw new Error('Invalid mortar system or round ID');
     }
 
-    // Calculate target data using MGRS service
-    const fireMission = MGRSService.calculateFireMission(observerGrid, targetGrid);
+    // Calculate target data using MGRS service with optional elevation
+    let fireMission: ReturnType<typeof MGRSService.calculateFireMissionWithElevation>;
+    let elevationData: ReturnType<typeof MGRSService.calculateElevationData> | undefined;
+    
+    if (options.gunElevationM !== undefined && options.targetElevationM !== undefined) {
+      fireMission = MGRSService.calculateFireMissionWithElevation(
+        observerGrid,
+        targetGrid,
+        options.gunElevationM,
+        options.targetElevationM
+      );
+      elevationData = fireMission.elevationData;
+    } else {
+      fireMission = MGRSService.calculateFireMission(observerGrid, targetGrid);
+    }
+    
     const targetRange = Math.round(fireMission.distanceMeters);
     
     // Use tactical fire solution if method is specified
@@ -439,16 +466,41 @@ export class FireDirectionService {
       chargeLevel = this.getChargeLevel(mortarSystemId, mortarRoundId, targetRange);
     }
 
+    // Apply elevation correction if terrain elevation is provided
+    let correctedElevationMils = solution.elevationMils;
+    let terrainCorrection: CompleteFiringSolution['terrainElevationCorrection'];
+    
+    if (elevationData && options.gunElevationM !== undefined && options.targetElevationM !== undefined) {
+      // Calculate elevation correction
+      // The tube elevation needs to be adjusted by the slope angle
+      correctedElevationMils = solution.elevationMils + elevationData.elevationAngleMils;
+      
+      terrainCorrection = {
+        gunElevationM: options.gunElevationM,
+        targetElevationM: options.targetElevationM,
+        heightDifferenceM: elevationData.heightDifference,
+        slopeAngleMils: elevationData.elevationAngleMils,
+        correctedElevationMils,
+        horizontalRangeM: elevationData.horizontalDistance,
+        slopeRangeM: elevationData.slopeDistance
+      };
+      
+      if (reasoning) {
+        reasoning += ` | Terrain elevation correction: ${elevationData.heightDifference > 0 ? '+' : ''}${Math.round(elevationData.elevationAngleMils)} mils for ${Math.abs(Math.round(elevationData.heightDifference))}m height difference`;
+      }
+    }
+
     const result: CompleteFiringSolution & { reasoning?: string } = {
       targetGrid,
       targetDistance: fireMission.distanceMeters,
       azimuthMils: fireMission.azimuthMils,
       backAzimuthMils: fireMission.backAzimuthMils,
-      elevationMils: solution.elevationMils,
+      elevationMils: correctedElevationMils,
       chargeLevel,
       timeOfFlightS: solution.timeOfFlightS,
       avgDispersionM: solution.avgDispersionM,
       interpolated: solution.interpolated,
+      terrainElevationCorrection: terrainCorrection,
       mortarSystem,
       mortarRound
     };
