@@ -12,6 +12,7 @@ export interface GunPosition {
   id: string;
   name: string;                    // "Gun 1", "Gun 2", etc.
   position: string;                // MGRS grid position
+  elevationM?: number;             // Gun altitude in meters above sea level
   azimuthOffset?: number;          // Azimuth offset from base gun in mils
   elevationOffset?: number;        // Elevation offset from base gun in mils
   status: 'active' | 'inactive' | 'maintenance';
@@ -108,6 +109,7 @@ export interface FPFTarget {
   id: string;
   name: string;                    // "FPF Alpha", "FPF Bravo", etc.
   targetGrid: string;              // MGRS target location
+  targetElevationM?: number;       // Target altitude in meters above sea level
   priority: FPFPriority;
   sector?: string;                 // Assigned sector if applicable
   preplannedSolution?: {
@@ -178,6 +180,7 @@ export interface Mission {
   
   // Mission Prep Data
   mortarPosition: string;          // MGRS grid (base gun position)
+  mortarElevationM?: number;       // Mortar altitude in meters above sea level
   numberOfGuns: number;            // Number of mortar tubes
   selectedSystem: string;          // Mortar system ID
   availableRounds: string[];       // Available ammunition types (mortar round IDs)

@@ -3,8 +3,8 @@ version: '3.8'
 services:
   fdc2-app:
     build:
-      context: .
-      dockerfile: Dockerfile.nginx
+      context: ..
+      dockerfile: docker/Dockerfile.nginx
     container_name: fdc2-nginx
     ports:
       - "80:80"

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Get the project root directory (two levels up from this script)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$PROJECT_ROOT"
+
 echo "🐳 FDC2 Docker Debug Script"
 echo "=========================="
 

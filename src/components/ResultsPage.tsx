@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { fireMissionHistoryService } from '../services/fireMissionHistoryService';
 import { useApp } from '../contexts/AppContext';
+import { TrajectoryChart } from './TrajectoryChart';
 
 // Define the result interface based on what the calculator provides
 interface FireMissionResult {
@@ -34,6 +35,10 @@ interface FireMissionResult {
   foAzimuthMils?: number;
   foDistanceMeters?: number;
   calculatedFromFO?: boolean;
+  
+  // Elevation data (for trajectory)
+  gunElevationM?: number;
+  targetElevationM?: number;
   
   // Adjustments data (optional)
   adjustmentApplied?: {
@@ -368,6 +373,19 @@ Time of Flight: ${result.timeOfFlightS}s`;
             </div>
           )}
         </div>
+      </div>
+
+      {/* Trajectory Visualization */}
+      <div className="mb-8">
+        <TrajectoryChart
+          rangeMeters={result.targetDistance}
+          elevationMils={result.elevationMils}
+          timeOfFlightS={result.timeOfFlightS}
+          gunElevationM={result.gunElevationM}
+          targetElevationM={result.targetElevationM}
+          chargeLevel={result.chargeLevel}
+          roundName={result.roundName}
+        />
       </div>
 
       {/* Observer Adjustments - Secondary Priority */}

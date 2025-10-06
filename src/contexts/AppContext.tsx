@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { FireDirectionService } from '../services/fireDirectionService';
 import type { FireMissionMethod } from '../services/fireDirectionService';
@@ -115,17 +115,29 @@ export function AppProvider({ children }: AppProviderProps) {
   });
 
   // Save calculator state to localStorage whenever it changes
+  // Use a ref to avoid race conditions
+  const savingRef = useRef(false);
   useEffect(() => {
+    if (savingRef.current) return;
+    
     try {
+      savingRef.current = true;
       localStorage.setItem('fdc-calculator-state', JSON.stringify(calculatorState));
+      console.log('Saved calculator state to localStorage:', calculatorState);
     } catch (error) {
       console.warn('Failed to save calculator state:', error);
+    } finally {
+      savingRef.current = false;
     }
   }, [calculatorState]);
 
-  const setCalculatorState = (partialState: Partial<CalculatorState>) => {
-    setCalculatorStateInternal(prev => ({ ...prev, ...partialState }));
-  };
+  const setCalculatorState = useCallback((partialState: Partial<CalculatorState>) => {
+    setCalculatorStateInternal(prev => {
+      const newState = { ...prev, ...partialState };
+      console.log('Calculator state update:', { prev, partialState, newState });
+      return newState;
+    });
+  }, []);
 
   const resetCalculatorState = () => {
     setCalculatorStateInternal(defaultCalculatorState);

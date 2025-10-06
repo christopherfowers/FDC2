@@ -1,0 +1,16 @@
+# Docker build context ignore file
+# Since we're building from parent directory, ignore unnecessary files
+
+node_modules
+dist
+.git
+.gitignore
+*.md
+docs
+lighthouse-reports
+test-results
+scripts
+*.log
+.env
+.vscode
+.idea

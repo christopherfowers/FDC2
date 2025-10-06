@@ -16,6 +16,7 @@ export function FireMissionPage() {
   // Form state
   const [foPosition, setFOPosition] = useState('');
   const [targetGrid, setTargetGrid] = useState('');
+  const [targetElevationM, setTargetElevationM] = useState<number | undefined>(undefined);
   const [fireControl, setFireControl] = useState<FireControl>('fire_when_ready');
   const [numberOfRounds, setNumberOfRounds] = useState(1);
   const [optimization, setOptimization] = useState<TacticalOptimization>('accuracy');
@@ -100,6 +101,7 @@ export function FireMissionPage() {
         state: {
           foPosition,
           targetGrid,
+          targetElevationM,
           fireControl,
           numberOfRounds,
           optimization,
@@ -187,6 +189,41 @@ export function FireMissionPage() {
         )}
       </div>
 
+      {/* Mission Information Panel */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg shadow-md p-6 mb-6 border border-green-200">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <i className="fas fa-info-circle mr-2 text-green-600"></i>
+          Mission Information
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white rounded-lg p-4 border border-green-200">
+            <div className="flex items-center mb-2">
+              <i className="fas fa-crosshairs text-green-600 mr-2"></i>
+              <span className="font-medium text-gray-700">Mortar Position</span>
+            </div>
+            <div className="font-mono text-lg text-gray-900">{currentMission.mortarPosition}</div>
+            {currentMission.mortarElevationM !== undefined && (
+              <div className="mt-2 flex items-center text-sm text-gray-600">
+                <i className="fas fa-mountain text-green-600 mr-1"></i>
+                <span>Elevation: <strong>{currentMission.mortarElevationM}m</strong> above sea level</span>
+              </div>
+            )}
+          </div>
+          <div className="bg-white rounded-lg p-4 border border-blue-200">
+            <div className="flex items-center mb-2">
+              <i className="fas fa-bomb text-blue-600 mr-2"></i>
+              <span className="font-medium text-gray-700">Available Ammunition</span>
+            </div>
+            <div className="text-sm text-gray-700">
+              {currentMission.availableRounds.map(roundId => {
+                const round = mortarRounds.find(r => String(r.id) === String(roundId));
+                return round ? round.name : roundId;
+              }).join(', ')}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* NATO 6-Line Call for Fire */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-6">
@@ -223,19 +260,41 @@ export function FireMissionPage() {
             <div className="flex-grow min-w-0">
               <h3 className="font-semibold text-green-900 mb-2">Target Location (Grid)</h3>
               <div className="space-y-3">
-                <div>
-                  <MGRSInput
-                    label=""
-                    value={targetGrid}
-                    onChange={setTargetGrid}
-                    placeholder="e.g., 18TVL1234567890"
-                    className={`w-full ${
-                      validationErrors.targetGrid ? 'border-red-400' : ''
-                    }`}
-                  />
-                  {validationErrors.targetGrid && (
-                    <p className="mt-1 text-sm text-red-600">{validationErrors.targetGrid}</p>
-                  )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <MGRSInput
+                      label=""
+                      value={targetGrid}
+                      onChange={setTargetGrid}
+                      placeholder="e.g., 18TVL1234567890"
+                      className={`w-full ${
+                        validationErrors.targetGrid ? 'border-red-400' : ''
+                      }`}
+                    />
+                    {validationErrors.targetGrid && (
+                      <p className="mt-1 text-sm text-red-600">{validationErrors.targetGrid}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Target Elevation <span className="text-xs text-gray-500">(Optional)</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={targetElevationM ?? ''}
+                        onChange={(e) => setTargetElevationM(e.target.value ? Number(e.target.value) : undefined)}
+                        placeholder="e.g., 250"
+                        className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900 bg-white"
+                      />
+                      <span className="absolute right-3 top-2.5 text-gray-500 text-sm">m</span>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1">
+                      <i className="fas fa-mountain text-green-600 mr-1"></i>
+                      Altitude above sea level
+                    </p>
+                  </div>
                 </div>
                 
                 {/* FPF Targets Quick Select */}
@@ -257,6 +316,7 @@ export function FireMissionPage() {
                             key={target.id}
                             onClick={() => {
                               setTargetGrid(target.targetGrid);
+                              setTargetElevationM(target.targetElevationM);
                               setTargetDescription(target.name);
                               setShowFPFTargets(false);
                             }}
@@ -264,6 +324,12 @@ export function FireMissionPage() {
                           >
                             <div className="font-medium text-gray-800">{target.name}</div>
                             <div className="text-gray-600 font-mono">{target.targetGrid}</div>
+                            {target.targetElevationM && (
+                              <div className="text-gray-500 text-xs">
+                                <i className="fas fa-mountain mr-1"></i>
+                                {target.targetElevationM}m
+                              </div>
+                            )}
                           </button>
                         ))}
                       </div>

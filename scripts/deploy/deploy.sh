@@ -4,6 +4,10 @@
 
 set -e
 
+# Get the project root directory (two levels up from this script)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$PROJECT_ROOT"
+
 echo "🎯 Fire Direction Calculator - Docker Deployment"
 echo "================================================"
 
@@ -13,10 +17,10 @@ PORT=${2:-80}
 
 if [ "$ENVIRONMENT" = "development" ]; then
     PORT=3002
-    COMPOSE_FILE="docker-compose.yml"
+    COMPOSE_FILE="docker/docker-compose.yml"
     echo "🧑‍💻 Deploying in DEVELOPMENT mode"
 else
-    COMPOSE_FILE="docker-compose.prod.yml"
+    COMPOSE_FILE="docker/docker-compose.prod.yml"
     echo "🚀 Deploying in PRODUCTION mode"
 fi
 

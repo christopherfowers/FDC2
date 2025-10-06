@@ -1,6 +1,9 @@
 @echo off
 REM Fire Direction Calculator - Quick Deployment Script for Windows
 
+REM Get the project root directory (two levels up from this script)
+cd /d "%~dp0..\.."
+
 echo 🎯 Fire Direction Calculator - Docker Deployment
 echo ================================================
 
@@ -11,11 +14,11 @@ if "%ENVIRONMENT%"=="" set ENVIRONMENT=production
 set PORT=%2
 if "%ENVIRONMENT%"=="development" (
     if "%PORT%"=="" set PORT=3002
-    set COMPOSE_FILE=docker-compose.yml
+    set COMPOSE_FILE=docker\docker-compose.yml
     echo 🧑‍💻 Deploying in DEVELOPMENT mode
 ) else (
     if "%PORT%"=="" set PORT=80
-    set COMPOSE_FILE=docker-compose.prod.yml
+    set COMPOSE_FILE=docker\docker-compose.prod.yml
     echo 🚀 Deploying in PRODUCTION mode
 )
 

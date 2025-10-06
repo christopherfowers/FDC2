@@ -24,6 +24,7 @@ export function MissionPrepPage() {
   const [missionName, setMissionName] = useState('');
   const [description, setDescription] = useState('');
   const [mortarPosition, setMortarPosition] = useState('');
+  const [mortarElevationM, setMortarElevationM] = useState<number | undefined>(undefined);
   const [numberOfGuns, setNumberOfGuns] = useState(1);
   const [selectedSystem, setSelectedSystem] = useState('');
   const [availableRounds, setAvailableRounds] = useState<string[]>([]);
@@ -51,6 +52,7 @@ export function MissionPrepPage() {
       setMissionName(currentMission.name);
       setDescription(currentMission.description || '');
       setMortarPosition(currentMission.mortarPosition);
+      setMortarElevationM(currentMission.mortarElevationM);
       setNumberOfGuns(currentMission.numberOfGuns);
       setSelectedSystem(currentMission.selectedSystem);
       setAvailableRounds(currentMission.availableRounds);
@@ -161,6 +163,7 @@ export function MissionPrepPage() {
           name: missionName,
           description: description || undefined,
           mortarPosition,
+          mortarElevationM,
           numberOfGuns,
           selectedSystem,
           availableRounds,
@@ -175,6 +178,7 @@ export function MissionPrepPage() {
           name: missionName,
           description: description || undefined,
           mortarPosition,
+          mortarElevationM,
           numberOfGuns,
           selectedSystem,
           availableRounds,
@@ -212,6 +216,7 @@ export function MissionPrepPage() {
           name: missionName,
           description: description || undefined,
           mortarPosition,
+          mortarElevationM,
           numberOfGuns,
           selectedSystem,
           availableRounds,
@@ -225,6 +230,7 @@ export function MissionPrepPage() {
           name: missionName,
           description: description || undefined,
           mortarPosition,
+          mortarElevationM,
           numberOfGuns,
           selectedSystem,
           availableRounds,
@@ -387,6 +393,29 @@ export function MissionPrepPage() {
             </p>
           </div>
 
+          {/* Mortar Elevation */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mortar Elevation <span className="text-xs text-gray-500">(Optional)</span>
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                value={mortarElevationM ?? ''}
+                onChange={(e) => setMortarElevationM(e.target.value ? Number(e.target.value) : undefined)}
+                placeholder="e.g., 150"
+                className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+              />
+              <span className="absolute right-3 top-2.5 text-gray-500 text-sm">m</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              <i className="fas fa-mountain text-green-600 mr-1"></i>
+              Altitude above sea level for terrain corrections
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           {/* Initial FO Position */}
           <div>
             <MGRSInput

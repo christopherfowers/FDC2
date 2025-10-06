@@ -18,7 +18,7 @@ A modern Progressive Web Application for military fire direction calculations, b
 - Corrected tube elevation for height differences
 - Supports uphill and downhill engagements
 - Military-grade trigonometric accuracy
-- See [ELEVATION_SUPPORT.md](./ELEVATION_SUPPORT.md) for details
+- See [ELEVATION_SUPPORT.md](./docs/ELEVATION_SUPPORT.md) for details
 
 ### 🚀 Progressive Web App
 - Full offline functionality with service worker caching
@@ -37,6 +37,23 @@ A modern Progressive Web Application for military fire direction calculations, b
 - Client-side CSV parsing and caching
 - No backend server or database required
 - Fast loading with smart data management
+
+## Project Structure
+
+```
+FDC2/
+├── docs/                      # Project documentation
+├── docker/                    # Docker configuration files
+├── lighthouse-reports/        # Lighthouse performance reports
+├── scripts/                   # Build and utility scripts
+│   └── deploy/               # Deployment scripts
+├── test-results/             # Test files and results
+├── src/                      # Source code
+├── public/                   # Static assets
+└── data/                     # Ballistic data CSV files
+```
+
+For detailed documentation, see the [docs directory](./docs/README.md).
 
 ## Getting Started
 

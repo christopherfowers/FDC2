@@ -252,7 +252,10 @@ export function FireMissionCalculator({ initialMission }: FireMissionCalculatorP
         // Include FO data for results page
         foAzimuthMils,
         foDistanceMeters,
-        calculatedFromFO: !!calculatedTargetGrid
+        calculatedFromFO: !!calculatedTargetGrid,
+        // Include elevation data for trajectory chart
+        gunElevationM,
+        targetElevationM
       };
       
       // Debug: Check what the enriched result contains
